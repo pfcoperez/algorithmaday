@@ -17,5 +17,24 @@ object Statistics {
     }
   }
 
+  /*
+     Median calculation using a quick sort like algorithm which reduces execution time & memory usage
+     (compared to classic approach by which the list gets ordered and it central element chosen) for
+     those cases in which the median is close to the center of the list.
+     O(n Log n)
+   */
+  def quickMedian[T](l: List[T])(implicit t2o: T => Ordered[T]): Option[T] = {
+
+    def quickMedianRec(l: List[T], emp: Int): Option[T] = l.headOption flatMap { pivot =>
+      val (under, over) = l.tail partition (_ <= pivot)
+      if(under.length == emp) Some(pivot)
+      else if(under.length > emp) quickMedianRec(under, emp)
+      else quickMedianRec(over, emp-under.length-1)
+    }
+
+    quickMedianRec(l, l.length/2)
+
+  }
+
 }
 
