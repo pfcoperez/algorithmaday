@@ -36,5 +36,31 @@ object Statistics {
 
   }
 
+  /**
+    * Closest elements in a collection given a distance for their type
+    * O(n Log n)
+    *
+    * Use example:
+    *
+    *   closestElements(Seq(1,10,11,23)) { case (a,b) => abs(a-b) }
+    *   > List((10, 11))
+    *
+    */
+  def closestElements[T, D](elements: Seq[T])(
+    distance: (T,T) => D
+  )(implicit cmpD: Ordering[D], cmpT: Ordering[T]): List[(T, T)] = {
+
+    val sorted = elements.sorted
+    val diffs = sorted.view zip sorted.view.tail
+
+    val minDiffPair = diffs.headOption.map( _ => diffs minBy distance.tupled ).toList
+
+    minDiffPair flatMap {
+      case (a, b) => diffs.filter { case (c, d) => cmpD.lteq(distance(d,c), distance(b,a)) }
+    }
+
+  }
+
 }
+
 
