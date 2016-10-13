@@ -48,12 +48,8 @@ object Algebra {
     def zeros[T : Numeric : ClassTag](n: Int, m: Int): Matrix[T] =
       Array.fill(n)(Array.fill(m)(implicitly[Numeric[T]].zero))
 
-    def positionalValues[T : Numeric : ClassTag](n: Int, m: Int)(pos2value: (Int, Int) => T): Matrix[T] = {
-      val base = zeros[T](n,m)
-      // This is confined state mutation within the method body used to improve performance
-      for(i <- 0 until n; j <- 0 until m) base(i)(j) = pos2value(i,j)
-      base
-    }
+    def positionalValues[T : ClassTag](n: Int, m: Int)(pos2value: (Int, Int) => T): Matrix[T] =
+      (0 until n) map (i => (0 until m) map (pos2value(i,_)) toArray) toArray
 
     def identity[T : Numeric : ClassTag](n: Int, m: Int): Matrix[T] =
       positionalValues(n, m) {
@@ -76,6 +72,7 @@ object Algebra {
     for(cell <- row) print(s"$cell ")
     println
   }
- */
+  */
+
 
 }
