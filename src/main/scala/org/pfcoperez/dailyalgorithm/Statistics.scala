@@ -1,5 +1,7 @@
 package org.pfcoperez.dailyalgorithm
 
+import org.pfcoperez.dailyalgorithm.Statistics.OnLineMedian.PriorityQueue
+
 object Statistics {
 
   /*
@@ -33,6 +35,73 @@ object Statistics {
     }
 
     quickMedianRec(l, l.length/2)
+
+  }
+
+
+  /*
+    Online immutable median calculator
+   */
+  object OnLineMedian {
+
+    trait PriorityQueue[T] {
+      def enqueue(t: T): PriorityQueue[T]
+      def popHead: PriorityQueue[T]
+      def headOption: Option[T]
+      def head: T = headOption.head
+      def size: Int
+      def isEmpty: Boolean = size == 0
+    }
+
+    object PriorityQueue {
+
+      def moveHead[T](from: PriorityQueue[T], to: PriorityQueue[T]): (PriorityQueue[T], PriorityQueue[T]) = {
+        val v: T = from.head //If from was empty, an unrecoverable error will raise
+        from.popHead -> to.enqueue(v)
+      }
+
+    }
+
+    def apply[T](queueFactory: Ordering[T] => PriorityQueue[T])(implicit cmp: Ordering[T]) =
+      new OnLineMedian(queueFactory(cmp), queueFactory(cmp.reverse))
+
+  }
+
+  class OnLineMedian[T : Ordering] private (private val lower: PriorityQueue[T], private val  upper: PriorityQueue[T]) {
+
+    import PriorityQueue.moveHead
+
+    private val cmp = implicitly[Ordering[T]]
+
+    /**
+      * O(Log n)
+      */
+    def nextSample(s: T): OnLineMedian[T] = {
+
+      val newQueues =
+        if (lower.isEmpty || cmp.gt(s, lower.head)) (lower, upper enqueue s)
+        else if (upper.isEmpty || cmp.lt(s, upper.head)) (lower enqueue s, upper)
+        else if (lower.size > upper.size) (lower enqueue s, upper)
+        else (lower, upper enqueue s)
+
+      (new OnLineMedian[T](_,_)) tupled balanceQueues.tupled(newQueues)
+
+    }
+
+    /**
+      * O(1)
+      */
+    def currentMedian: Set[T] = lower.headOption.toSet ++ upper.headOption.toSet
+
+    /**
+      * O(Log n)
+      */
+    private[this] val balanceQueues: (PriorityQueue[T], PriorityQueue[T]) => (PriorityQueue[T], PriorityQueue[T]) = {
+      case (l, u) if(l.size-u.size == -2) => moveHead(u, l) swap
+      case (l, u) if(l.size-u.size == 2) => moveHead (l, u)
+      case balanced => balanced
+    }
+
 
   }
 
