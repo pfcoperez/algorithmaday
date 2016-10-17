@@ -54,7 +54,8 @@ object Algebra {
           }
 
           /**
-            *
+            * O(l^2 Log l), l = n = m
+            * PRE: n = m
             */
           override def multiply[T: Numeric : ClassTag](A: Matrix[T], B: Matrix[T]): Matrix[T] = {
             val (n, m) = (size(A)._1, size(B)._2)
