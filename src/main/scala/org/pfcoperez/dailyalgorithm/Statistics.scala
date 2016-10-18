@@ -132,6 +132,26 @@ object Statistics {
 
   }
 
+  /**
+    * Kadane's algorithm to get the maximum-sum sub sequence of a sequence of ordered elements
+    * (with zero and "negative elements")
+    *
+    * O(n), n = size of the input sequence
+    *
+    */
+  def maximumSumSubSequence[T](s: Seq[T])(implicit num: Numeric[T]): Seq[T] = {
+
+    val (maxSum, sums) = ((num.zero, List.empty[(T, T)]) /: s) {
+      case ((maxSum, prevSums), value) =>
+        val maxSumUpToValue = num.max(value, num.plus(value, prevSums.headOption.map(_._1) getOrElse num.zero))
+        (num.max(maxSumUpToValue, maxSum), (maxSumUpToValue -> value)::prevSums)
+    }
+
+    sums.view dropWhile(_._1 != maxSum) takeWhile {
+      case (sum, _) => num.gt(sum, num.zero)
+    } reverseMap(_._2)
+
+  }
 
 }
 
