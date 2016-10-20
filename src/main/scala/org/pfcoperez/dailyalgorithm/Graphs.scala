@@ -12,7 +12,7 @@ object Graphs {
 
     def traverseRec(toVisit: Queue[DirectedGraph[T]], acc: List[S]): List[S] = toVisit.headOption collect {
       case Node(value, children) =>
-        val (newToVisit: Queue[T], toAcc: Option[T]) = f.lift(value) map { res =>
+        val (newToVisit, toAcc) = f.lift(value) map { res =>
           (toVisit.tail ++ children, Some(res))
         } getOrElse(toVisit.tail -> None)
         traverseRec(newToVisit, toAcc map (_::acc) getOrElse acc)
