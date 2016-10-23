@@ -52,4 +52,23 @@ object Graphs {
 
   }
 
+  /**
+    * O(n)*T(f)
+    */
+  def breadthFirstFold[T,S](z: S, g: DirectedGraph[T])(f: PartialFunction[(S, T), S]): S = {
+
+    def traverseRec(toVisit: Queue[DirectedGraph[T]], acc: S): S =
+      toVisit.headOption collect {
+        case Node(value, children) =>
+          val (newToVisit, newAcc) = f.lift(acc, value) map { res =>
+            (toVisit.tail ++ children, res)
+          } getOrElse(toVisit.tail -> acc)
+          traverseRec(newToVisit, newAcc)
+      } getOrElse acc
+
+    traverseRec(Queue(g), z)
+
+  }
+
+  
 }
