@@ -72,6 +72,15 @@ object Graphs {
 
   }
 
+  /**
+    * Adjacency matrix from Directed graph, based on the position of the node within it, not on its value.
+    * O(n), n = Number of nodes
+    *
+    * val g: Node[Int] =
+    *          Node(1, Node(2, Node(5, Nil)::Nil):: Node(3, Node(6, Node(7, Nil)::Nil)::Nil)::Node(4, Nil)::Nil)
+    *
+    * val m: Matrix[Boolean] = g
+    */
   implicit def graph2matrix[T](g: DirectedGraph[T]): Matrix[Boolean] = {
 
     type AdjacencyMap = Map[Node[T], Set[Node[T]]]
@@ -98,5 +107,5 @@ object Graphs {
     }
 
   }
-  
+
 }
