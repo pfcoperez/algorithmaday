@@ -1,5 +1,7 @@
 package org.pfcoperez.dailyalgorithm
 
+import org.pfcoperez.dailyalgorithm.Algebra.Matrix.{Matrix, positionalValues}
+
 import scala.collection.immutable.Queue
 
 object Graphs {
@@ -70,5 +72,31 @@ object Graphs {
 
   }
 
+  implicit def graph2matrix[T](g: DirectedGraph[T]): Matrix[Boolean] = {
+
+    type AdjacencyMap = Map[Node[T], Set[Node[T]]]
+
+    def adjacencyMap(
+                      toVisit: Queue[DirectedGraph[T]],
+                      acc: AdjacencyMap,
+                      breadCrumbs: List[Node[T]]): (AdjacencyMap, List[Node[T]]) =
+      toVisit.headOption collect {
+        case node @ Node(_, children) =>
+          adjacencyMap(
+            toVisit.tail ++ children.filterNot(acc contains _),
+            acc + (node -> children.toSet),
+            node::breadCrumbs
+          )
+        case Empty() => adjacencyMap(toVisit.tail, acc, breadCrumbs)
+      } getOrElse (acc, breadCrumbs reverse)
+
+    val (node2adjacents, nodes) = adjacencyMap(Queue(g), Map.empty, Nil)
+    val pos2node = nodes toArray
+
+    positionalValues[Boolean](pos2node.length, pos2node.length) {
+      case (i, j) => node2adjacents get(pos2node(i)) map(_.contains(pos2node(j))) getOrElse false
+    }
+
+  }
   
 }
