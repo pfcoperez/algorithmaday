@@ -88,18 +88,21 @@ object Graphs {
     def adjacencyMap(
                       toVisit: Queue[DirectedGraph[T]],
                       acc: AdjacencyMap,
-                      breadCrumbs: List[Node[T]]): (AdjacencyMap, List[Node[T]]) =
+                      breadCrumbs: List[Node[T]],
+                      visited: Set[Node[T]]
+                    ): (AdjacencyMap, List[Node[T]]) =
       toVisit.headOption collect {
         case node @ Node(_, children) =>
           adjacencyMap(
             toVisit.tail ++ children.filterNot(acc contains _),
             acc + (node -> children.toSet),
-            node::breadCrumbs
+            if(!visited.contains(node)) node::breadCrumbs else breadCrumbs,
+            visited + node
           )
-        case Empty() => adjacencyMap(toVisit.tail, acc, breadCrumbs)
+        case Empty() => adjacencyMap(toVisit.tail, acc, breadCrumbs, visited)
       } getOrElse (acc, breadCrumbs reverse)
 
-    val (node2adjacents, nodes) = adjacencyMap(Queue(g), Map.empty, Nil)
+    val (node2adjacents, nodes) = adjacencyMap(Queue(g), Map.empty, Nil, Set.empty)
     val pos2node = nodes toArray
 
     positionalValues[Boolean](pos2node.length, pos2node.length) {

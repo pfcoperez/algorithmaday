@@ -106,7 +106,7 @@ object Algebra {
         case _ => implicitly[Numeric[T]].zero
       }
 
-    def fmap[T, S: ClassTag](M: Matrix[T], f: T => S): Matrix[S] = {
+    def fmap[T, S: ClassTag](M: Matrix[T])(f: T => S): Matrix[S] = {
       val (n, m) = size(M)
       positionalValues(n, m)((i, j) => f(M(i)(j)))
     }
