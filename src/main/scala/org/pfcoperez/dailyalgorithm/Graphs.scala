@@ -111,4 +111,42 @@ object Graphs {
 
   }
 
+  object LinkedStructures {
+
+    object LinkedList {
+      // List factory: O(n)
+      def apply[T](elements: T*): LinkedList[T] =
+        (elements :\ (Empty: LinkedList[T])) {
+          (v, prev) => v +: prev
+        }
+    }
+
+    //Algebraic data type LinkedList = Empty | Element x
+    trait LinkedList[+T] {
+      // Prepend value: O(1)
+      def +:[S >: T](x: S): LinkedList[S] = Element(x, this)
+      def length: Int
+      def next: LinkedList[T]
+    }
+
+    case class Element[+T](x: T, val next: LinkedList[T]) extends LinkedList[T] {
+
+      def length: Int = {
+        def tailRecLength(l: LinkedList[T], acc: Int = 0): Int = l match {
+          case Element(_, next) => tailRecLength(next, acc+1)
+          case _ => acc
+        }
+        tailRecLength(this)
+      }
+
+    }
+
+    case object Empty extends LinkedList[Nothing] {
+      override def length: Int = 0
+      override def next: LinkedList[Nothing] =
+        throw new RuntimeException("Serial crash: Asking EMPTY for next")
+    }
+
+  }
+
 }
