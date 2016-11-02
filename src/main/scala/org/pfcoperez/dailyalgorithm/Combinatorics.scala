@@ -1,6 +1,7 @@
 package org.pfcoperez.dailyalgorithm
 
 import scala.annotation.tailrec
+import scala.collection.immutable.Stream.Empty
 
 object Combinatorics {
 
@@ -35,6 +36,42 @@ object Combinatorics {
     }
 
     bruteForceStep(z::Nil, Nil)
+  }
+
+  /**
+    * Lazy Depth first brute force template, it returns an exploration streams on-demand providing as many solutions
+    * as asked.
+    *
+    * Generate the stream: O(1)
+    * Test a case: O(1)
+    *
+    * Use example: Generating 100 length 4 words:
+    *
+    * val result = lazyBruteForce("") { st => if(st.length < 4) ('a' to 'z').toList else Nil } {
+    *   st => st.length >= 4
+    * } (_ + _)
+    *
+    * @param z              Starting state.
+    * @param analysis       Function which explores what paths starts from the current state.
+    * @param isSolution     Function determining whether the current state is a solution or not.
+    * @param stepSynthesis  Function which generates a new state from the current and a chosen path.
+    * @return               Lazily computed stream of solutions.
+    */
+  def lazyBruteForce[T, S](z: S)(
+    analysis: S => List[T])(
+    isSolution: S => Boolean)(
+    stepSynthesis: (S, T) => S
+  ): Stream[S] = {
+
+    lazy val solutionsStream: Stream[List[S]] = (z::Nil) #:: solutionsStream flatMap {
+      case st::restToExplore => Stream((analysis(st) map (stepSynthesis(st, _))):::restToExplore)
+      case Nil => Empty
+    }
+
+    solutionsStream collect {
+      case s::_ if isSolution(s) => s
+    }
+
   }
 
 }
