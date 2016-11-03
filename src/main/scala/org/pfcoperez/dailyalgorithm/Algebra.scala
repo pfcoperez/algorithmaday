@@ -78,6 +78,31 @@ object Algebra {
         implicit val DefaultMultiplicationMethod = MultiplicationMethods.NaiveMultiplicationMethod
       }
 
+      def lupDecomposition[T : Numeric](A: Matrix[T]): Option[(Matrix[T], Matrix[T], Matrix[T])] = {
+        val (n, m) = size(A)
+
+        if(n == m) { //The input should be a square matrix
+
+          val num = implicitly[Numeric[T]]
+          val `1`: T = num.one
+          val `0`: T = num.zero
+
+          def recLUP(A: Matrix[T], k: Int, p: Vector[T]): Option[(Matrix[T], Vector[T])] = {
+            val (pv, pidx) = (k until n).view.map(i => i -> A(i)(k)).maxBy(x => num.abs(x._2))
+            if(pv == 0) None //The input can't be a singular matrix
+            else {
+              val newp = p.updated(num.toInt(pidx), pv)
+              ???
+            }
+          }
+
+          val (lu, p) = recLUP(A, 0, (0 until n-1).toVector.scanLeft(`0`) { case (acc, _) => num.plus(acc, `1`) })
+
+          ???
+
+        } else None
+
+      }
 
     }
 
