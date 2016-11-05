@@ -9,6 +9,11 @@ object Algebra {
 
     type Matrix[T] = Array[Array[T]]
 
+    implicit class PrintableMatrix[T](M: Matrix[T]) {
+      override def toString: String =
+        (for(row <- M) yield (for(cell <- row) yield cell.toString).mkString(" ")) mkString "\n"
+    }
+
     object NumericMatrix {
 
       trait MultiplicationMethod {
@@ -78,29 +83,46 @@ object Algebra {
         implicit val DefaultMultiplicationMethod = MultiplicationMethods.NaiveMultiplicationMethod
       }
 
-      def lupDecomposition[T : Numeric](A: Matrix[T]): Option[(Matrix[T], Matrix[T], Matrix[T])] = {
-        val (n, m) = size(A)
+      def lupDecomposition[T : Numeric](A: Matrix[T]
+                                       ): Option[(Matrix[Double], Matrix[Double], Matrix[Double])] = {
 
-        if(n == m) { //The input should be a square matrix
-
-          val num = implicitly[Numeric[T]]
-          val `1`: T = num.one
-          val `0`: T = num.zero
-
-          def recLUP(A: Matrix[T], k: Int, p: Vector[T]): Option[(Matrix[T], Vector[T])] = {
-            val (pv, pidx) = (k until n).view.map(i => i -> A(i)(k)).maxBy(x => num.abs(x._2))
-            if(pv == 0) None //The input can't be a singular matrix
-            else {
-              val newp = p.updated(num.toInt(pidx), pv)
-              ???
+        def recLUP(A: Matrix[Double], n: Int, K: Int, p: Vector[Int]): Option[(Matrix[Double], Vector[Int])] = {
+          val (prow, pidx) = A.zipWithIndex.drop(K) maxBy { case (row, _) => row(K).abs }
+          val Kprime = pidx
+          if(prow(K) == 0.0) None //The input can't be a singular matrix
+          else {
+            val pk = p(K)
+            val pkprime = p(Kprime)
+            val newp = p.zipWithIndex map { case (v, idx) => if(idx == K) pkprime else if(idx == Kprime) pk else v }
+            val protoA = positionalValues(n,n) {
+              case (K, j) => A(Kprime)(j)
+              case (Kprime, j) => A(K)(j)
+              case (i, j) => A(i)(j)
             }
+            val aik: Int => Double = i => protoA(i)(K)/protoA(K)(K)
+            val newA = positionalValues(n, n) {
+              case (i, K) if i > K => aik(i)
+              case (i, j) if i > K && j > K =>
+                protoA(i)(j)-aik(i)*protoA(K)(j)
+              case (i, j) => protoA(i)(j)
+            }
+            if(K < n-1) recLUP(newA, n, K+1, newp) else Some(A -> p)
           }
+        }
 
-          val (lu, p) = recLUP(A, 0, (0 until n-1).toVector.scanLeft(`0`) { case (acc, _) => num.plus(acc, `1`) })
+        Some(size(A)) flatMap {
+          case (n,m) if n == m && n > 0 =>
+            val num = implicitly[Numeric[T]]
+            import num.mkNumericOps
 
-          ???
-
-        } else None
+            recLUP(fmap(A)(_.toDouble), n, 0, (0 until n) toVector) map { case (lu, p) =>
+              val L = positionalValues(n, n)((i, j) => if(i == j) 1.0 else if(j < i) lu(i)(j) else 0.0)
+              val U = positionalValues(n, n)((i, j) => if(j >= i) lu(i)(j) else 0.0)
+              val P = positionalValues(n, n)((i, j) => if(p(i) == j) 1.0 else 0.0)
+              (L, U, P)
+            }
+          case _ => None
+        }
 
       }
 
