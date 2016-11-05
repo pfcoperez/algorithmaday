@@ -83,46 +83,48 @@ object Algebra {
         implicit val DefaultMultiplicationMethod = MultiplicationMethods.NaiveMultiplicationMethod
       }
 
-      def lupDecomposition[T : Numeric](A: Matrix[T]
-                                       ): Option[(Matrix[Double], Matrix[Double], Matrix[Double])] = {
+      /**
+        * Lower - Upper - Permutation Decomposition
+        * O(n^3)
+        *
+        * This is a referentially transparent adaptation of Thomas Cormen's algorithm.
+        *
+        * @param A Square matrix to decompose. Note that the return matrix type isn't T anymore but Double,
+        *          that is a constraint imposed by the lack of the division operation in the [[Numeric]] ops interface.
+        */
+      def lupDecomposition[T : Numeric](A: Matrix[T]): Option[(Matrix[Double], Matrix[Double], Matrix[Double])] = {
+
+        val num = implicitly[Numeric[T]]
+        import num.mkNumericOps
 
         def recLUP(A: Matrix[Double], n: Int, K: Int, p: Vector[Int]): Option[(Matrix[Double], Vector[Int])] = {
-          val (prow, pidx) = A.zipWithIndex.drop(K) maxBy { case (row, _) => row(K).abs }
-          val Kprime = pidx
+          val (prow, pi) = A.zipWithIndex.drop(K) maxBy { case (row, _) => row(K).abs }
           if(prow(K) == 0.0) None //The input can't be a singular matrix
           else {
-            val pk = p(K)
-            val pkprime = p(Kprime)
-            val newp = p.zipWithIndex map { case (v, idx) => if(idx == K) pkprime else if(idx == Kprime) pk else v }
-            val protoA = positionalValues(n,n) {
-              case (K, j) => A(Kprime)(j)
-              case (Kprime, j) => A(K)(j)
-              case (i, j) => A(i)(j)
-            }
-            val aik: Int => Double = i => protoA(i)(K)/protoA(K)(K)
+            val Kprime = pi
+            def iK4KPrime(i: Int): Int = if(i == K) Kprime else if(i == Kprime) K else i
+            def aik(i: Int): Double = A(iK4KPrime(i))(K)/A(Kprime)(K)
+
+            val newp = p.zipWithIndex map { case (_, K) => p(Kprime); case (_, Kprime) => p(K); case (v, _) => v }
+
             val newA = positionalValues(n, n) {
               case (i, K) if i > K => aik(i)
-              case (i, j) if i > K && j > K =>
-                protoA(i)(j)-aik(i)*protoA(K)(j)
-              case (i, j) => protoA(i)(j)
+              case (i, j) if i > K && j > K => A(iK4KPrime(i))(j)-aik(i)*A(Kprime)(j)
+              case (i, j) => A(iK4KPrime(i))(j)
             }
             if(K < n-1) recLUP(newA, n, K+1, newp) else Some(A -> p)
           }
         }
 
-        Some(size(A)) flatMap {
+        Some(size(A)) collect {
           case (n,m) if n == m && n > 0 =>
-            val num = implicitly[Numeric[T]]
-            import num.mkNumericOps
-
             recLUP(fmap(A)(_.toDouble), n, 0, (0 until n) toVector) map { case (lu, p) =>
               val L = positionalValues(n, n)((i, j) => if(i == j) 1.0 else if(j < i) lu(i)(j) else 0.0)
               val U = positionalValues(n, n)((i, j) => if(j >= i) lu(i)(j) else 0.0)
               val P = positionalValues(n, n)((i, j) => if(p(i) == j) 1.0 else 0.0)
               (L, U, P)
             }
-          case _ => None
-        }
+        } flatten
 
       }
 
