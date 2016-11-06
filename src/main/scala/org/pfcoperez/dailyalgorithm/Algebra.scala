@@ -79,8 +79,29 @@ object Algebra {
 
       }
 
+      trait DeterminantMethod {
+        def determinant[T : Numeric : ClassTag](M: Matrix[T]): Double
+      }
+
+      object DeterminantMethods {
+
+        object LUPDecompositionMethod extends DeterminantMethod {
+
+          /**
+            * O(n^3), n = no rows = no columns
+            */
+          def determinant[T : Numeric : ClassTag](M: Matrix[T]): Double =
+            lupDecomposition(M) map { case (_, upperMatrix, permutationMatrix, detP) =>
+              (1.0 /: (0 until size(M)._1))((prev, k) => prev*upperMatrix(k)(k))*math.pow(-1.0, detP)
+            } getOrElse 0.0
+
+        }
+
+      }
+
       object Implicits {
         implicit val DefaultMultiplicationMethod = MultiplicationMethods.NaiveMultiplicationMethod
+        implicit val DefaultDeterminantMethod = DeterminantMethods.LUPDecompositionMethod
       }
 
       /**
@@ -91,13 +112,17 @@ object Algebra {
         *
         * @param A Square matrix to decompose. Note that the return matrix type isn't T anymore but Double,
         *          that is a constraint imposed by the lack of the division operation in the [[Numeric]] ops interface.
+        *
+        * @return If the matrix is square and not singular: Some((L, U, P, detP))
         */
-      def lupDecomposition[T : Numeric](A: Matrix[T]): Option[(Matrix[Double], Matrix[Double], Matrix[Double])] = {
+      def lupDecomposition[T : Numeric](A: Matrix[T]): Option[(Matrix[Double], Matrix[Double], Matrix[Double], Int)] = {
 
         val num = implicitly[Numeric[T]]
         import num.mkNumericOps
 
-        def recLUP(A: Matrix[Double], n: Int, K: Int, p: Vector[Int]): Option[(Matrix[Double], Vector[Int])] = {
+        def recLUP(A: Matrix[Double], n: Int, K: Int, p: Vector[Int], accDetP: Int):
+          Option[(Matrix[Double], Vector[Int], Int)] = {
+
           val (prow, pi) = A.zipWithIndex.drop(K) maxBy { case (row, _) => row(K).abs }
           if(prow(K) == 0.0) None //The input can't be a singular matrix
           else {
@@ -112,17 +137,17 @@ object Algebra {
               case (i, j) if i > K && j > K => A(iK4KPrime(i))(j)-aik(i)*A(Kprime)(j)
               case (i, j) => A(iK4KPrime(i))(j)
             }
-            if(K < n-1) recLUP(newA, n, K+1, newp) else Some(A -> p)
+            if(K < n-1) recLUP(newA, n, K+1, newp, accDetP + (if(K != Kprime) 1 else 0)) else Some((A, p, accDetP))
           }
         }
 
         Some(size(A)) collect {
           case (n,m) if n == m && n > 0 =>
-            recLUP(fmap(A)(_.toDouble), n, 0, (0 until n) toVector) map { case (lu, p) =>
+            recLUP(fmap(A)(_.toDouble), n, 0, (0 until n) toVector, 0) map { case (lu, p, detP) =>
               val L = positionalValues(n, n)((i, j) => if(i == j) 1.0 else if(j < i) lu(i)(j) else 0.0)
               val U = positionalValues(n, n)((i, j) => if(j >= i) lu(i)(j) else 0.0)
               val P = positionalValues(n, n)((i, j) => if(p(i) == j) 1.0 else 0.0)
-              (L, U, P)
+              (L, U, P, detP)
             }
         } flatten
 
@@ -130,9 +155,11 @@ object Algebra {
 
     }
 
+
+
     implicit class NumericMatrix[T: Numeric : ClassTag](m: Matrix[T]) {
 
-      import org.pfcoperez.dailyalgorithm.Algebra.Matrix.NumericMatrix.MultiplicationMethod
+      import org.pfcoperez.dailyalgorithm.Algebra.Matrix.NumericMatrix.{MultiplicationMethod, DeterminantMethod}
 
       def *(that: Matrix[T])(implicit multiplicationMethod: MultiplicationMethod): Matrix[T] =
         multiplicationMethod.multiply(m, that)
@@ -141,6 +168,10 @@ object Algebra {
         val (nrows, ncols) = size(that)
         positionalValues(nrows, ncols)((i, j) => implicitly[Numeric[T]].plus(m(i)(j), that(i)(j)))
       }
+
+      def det(implicit determinantMethod: DeterminantMethod): Double =
+        determinantMethod.determinant(m)
+
     }
 
     def zeros[T: Numeric : ClassTag](n: Int, m: Int): Matrix[T] =

@@ -9,7 +9,7 @@ class FoldSpec extends FlatSpec with Matchers {
 
     def breadthFirstTakeUsingFold[T, S](g: DirectedGraph[T])(f: PartialFunction[T, S]): List[S] =
       breadthFirstFold(List.empty[S], g) {
-        case (acc: List[S], v: T) if f.isDefinedAt(v) => f(v)::acc
+        case (acc: List[S], v: T @unchecked) if f.isDefinedAt(v) => f(v)::acc
       } reverse
 
     val pf: PartialFunction[Int, Int] = {

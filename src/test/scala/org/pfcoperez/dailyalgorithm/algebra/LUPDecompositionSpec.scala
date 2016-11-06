@@ -4,7 +4,7 @@ import org.pfcoperez.dailyalgorithm.Algebra.Matrix._
 import org.pfcoperez.dailyalgorithm.Algebra.Matrix.NumericMatrix._
 import org.scalatest.{FlatSpec, Matchers}
 
-class LUPDecomposition extends FlatSpec with Matchers {
+class LUPDecompositionSpec extends FlatSpec with Matchers {
 
   "The Cormen's L-U-P Decomposition algorithm implementation" should "be able to decompose a 4x4 int matrix" in {
 
@@ -15,7 +15,7 @@ class LUPDecomposition extends FlatSpec with Matchers {
       Array(-1, -2,3.4,  -1)
     )
 
-    val Some((l, u, p)) = lupDecomposition(M)
+    val Some((l, u, p, _)) = lupDecomposition(M)
 
     import NumericMatrix.Implicits.DefaultMultiplicationMethod
 
