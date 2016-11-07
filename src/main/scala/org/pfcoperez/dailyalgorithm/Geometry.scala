@@ -1,5 +1,11 @@
 package org.pfcoperez.dailyalgorithm
 
+import org.pfcoperez.dailyalgorithm.Algebra.Matrix.Matrix
+import org.pfcoperez.dailyalgorithm.Algebra.Matrix.NumericMatrix
+import org.pfcoperez.dailyalgorithm.Algebra.Matrix.NumericMatrix.Implicits._
+
+import scala.util.Try
+
 object Geometry {
 
   case class Vect(x: Double, y: Double) {
@@ -9,6 +15,7 @@ object Geometry {
   }
 
   type Point = Vect
+  type NPoint = Product
 
   /* Angle formed by CA & CB segments: O(1) */
   def alpha(A: Point, C: Point, B: Point) = {
@@ -38,5 +45,39 @@ object Geometry {
 
       Some(recCH(first:: zeroth :: Nil, points) init)
     }
+
+  object Primitives {
+
+    /**
+      * Compute the volume of a n-dimensional simplex
+      * O(n^3)
+      * 
+      */
+    def simplexVolume(simplexPoints: Seq[NPoint]): Try[Double] = Try {
+
+      def fact(x: Int, acc: Int = 1): Int = x match {
+        case 0 => acc
+        case _ => fact(x-1, x*acc)
+      }
+
+      require(
+        simplexPoints.nonEmpty && simplexPoints.map(_.productArity).toSet.size == 1,
+        "All points should share dimension"
+      )
+      val d = simplexPoints.head.productArity
+      require(
+        simplexPoints.size == d+1,
+        "The simplex should consist of as many points as its dimension + 1"
+      )
+
+      val M: Matrix[Double] = simplexPoints.map { point =>
+        ((point.productIterator map {case v: Double => v}) ++ Iterator(1.0)) toArray
+      } toArray
+
+      M.det/fact(d)
+
+    }
+
+  }
 
 }
