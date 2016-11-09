@@ -51,7 +51,10 @@ object Geometry {
     /**
       * Compute the volume of a n-dimensional simplex
       * O(n^3)
-      * 
+      *
+      * @param simplexPoints
+      * @return the length of a segment in 1D, the area of a triangle in 2D,
+      *         the volume of a tetrahedron in 3D, ...
       */
     def simplexVolume(simplexPoints: Seq[NPoint]): Try[Double] = Try {
 
@@ -77,6 +80,27 @@ object Geometry {
       M.det/fact(d)
 
     }
+
+    trait RelativePosition
+    object Above extends RelativePosition
+    object Below extends RelativePosition
+    object On extends RelativePosition
+
+    /**
+      * Provides the relative position of a point to a n-dimensional boundary:
+      *   a point, a line, a plane, ...
+      *
+      * @param p
+      * @param boundary n points determining the boundary
+      * @return Relative position of `p` to `boundary`:
+      *         Above (left or above) \/ On \/ Below (right or below)
+      */
+    def pointRelative2boundary(p: NPoint, boundary: Seq[NPoint]): Try[RelativePosition] =
+      simplexVolume(boundary :+ p) map {
+        case v if v > 0 => Above
+        case v if v < 0 => Below
+        case 0 => On
+      }
 
   }
 
