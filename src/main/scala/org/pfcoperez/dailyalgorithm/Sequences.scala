@@ -27,4 +27,15 @@ object Sequences {
 
   }
 
+  def minimalLexicographicRotation[T](s: Vector[T]): Int = {
+    implicit class CyclicVector(v: Vector[T]) {
+      private def safeIndex(idx: Int): Int = ???
+      def apply(idx: Int): T = v(safeIndex(idx))
+      def update(idx: Int, value: T): CyclicVector = v.updated(safeIndex(idx), value)
+    }
+    val cs: CyclicVector = s
+
+
+  }
+
 }
