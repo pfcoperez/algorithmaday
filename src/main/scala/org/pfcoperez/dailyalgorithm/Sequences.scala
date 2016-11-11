@@ -28,13 +28,16 @@ object Sequences {
   }
 
   def minimalLexicographicRotation[T](s: Vector[T]): Int = {
-    implicit class CyclicVector(v: Vector[T]) {
-      private def safeIndex(idx: Int): Int = ???
-      def apply(idx: Int): T = v(safeIndex(idx))
-      def update(idx: Int, value: T): CyclicVector = v.updated(safeIndex(idx), value)
+    implicit class CyclicVector[S](v: Vector[S]) {
+      private def safeIndex(idx: Int): Int = (math.abs(idx).toDouble/v.size).ceil.toInt*v.size + idx
+      def apply(idx: Int): S = v(safeIndex(idx))
+      def update(idx: Int, value: S): CyclicVector[S] = v.updated(safeIndex(idx), value)
     }
-    val cs: CyclicVector = s
+    val cs: CyclicVector[T] = s
 
+    val failure: CyclicVector[Option[T]] = Vector.fill(s.size)(None)
+
+    0
 
   }
 
