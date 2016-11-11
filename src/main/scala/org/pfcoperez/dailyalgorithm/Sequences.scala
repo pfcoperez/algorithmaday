@@ -1,5 +1,7 @@
 package org.pfcoperez.dailyalgorithm
 
+import scala.math.Ordering
+
 object Sequences {
 
   /**
@@ -25,6 +27,45 @@ object Sequences {
 
     recGen(left, right reverse, ("", ""))
 
+  }
+
+  /**
+    * Booth's lexicographic minimal rotation
+    * O(n)
+    * 
+    * Provides the rotation index leading to a minimum lexicographic order
+    * & keeping the in-sequence order. 
+    */
+  def minimalLexicographicRotation[T](s: Vector[T])(implicit ordEvidence: Ordering[T]): Int = {
+
+    implicit class CyclicVector[S](val v: Vector[S]) {
+      private def safeIndex(idx: Int): Int =
+        (if(idx >= 0) idx else (math.abs(idx)/v.size+1)*v.size + idx) % v.size
+      def apply(idx: Int): S = v(safeIndex(idx))
+      def update(idx: Int, value: S): CyclicVector[S] = v.updated(safeIndex(idx), value)
+    }
+
+    val cs: CyclicVector[T] = s
+
+    import ordEvidence.mkOrderingOps
+
+    def recMinRot(f: CyclicVector[Int], k0: Int, j: Int): Int =
+      if(j == s.size*2) k0 else {
+
+        def findIK(i: Int, k: Int): (Int, Int) =
+          if(i == -1 || cs(j) == cs(k+i+1)) i -> k
+          else findIK(f(i), if(cs(j) < cs(k+i+1)) j-i-1 else k)
+
+        val (i, k) = findIK(f(j-k0-1), k0)
+
+        val (newk, newFjk) =
+          if(cs(j) != cs(k+i+1)) (if(cs(j) < cs(k)) j else k, -1)
+          else (k, i+1)
+
+        recMinRot(f.update(j-k, newFjk), newk, j+1)
+      }
+
+    recMinRot(Vector.fill(s.size*2)(-1), 0, 1)
   }
 
 }
