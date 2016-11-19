@@ -65,7 +65,7 @@ object Sequences {
         recMinRot(f.update(j-k, newFjk), newk, j+1)
       }
 
-    recMinRot(Vector.fill(s.size*2)(-1), 0, 1)
+    recMinRot(Vector.fill(s.size)(-1), 0, 1)
   }
 
 }
