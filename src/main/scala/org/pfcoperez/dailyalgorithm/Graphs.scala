@@ -149,4 +149,115 @@ object Graphs {
 
   }
 
+  object BinaryTrees {
+
+    trait BinaryTree[+T]
+    case class Node[T](left: BinaryTree[T], v: T, right: BinaryTree[T]) extends BinaryTree[T]
+    case object Empty extends BinaryTree[Nothing]
+
+    trait BinaryTreeOps {
+      def min[T : Ordering](btree: BinaryTree[T]): Option[T]
+      def max[T : Ordering](btree: BinaryTree[T]): Option[T]
+      def findFirst[T : Ordering](btree: BinaryTree[T])(v: T): BinaryTree[T]
+      def toList[T : Ordering](btree: BinaryTree[T]): List[T]
+      def insert[T : Ordering](btree: BinaryTree[T])(v: T): BinaryTree[T]
+      def delete[T: Ordering](btree: BinaryTree[T])(v: T): BinaryTree[T]
+      def height[T](binaryTree: BinaryTree[T]): Int
+    }
+
+    object RawBinaryTree extends BinaryTreeOps {
+
+      // O(h), h = tree height
+      def partialFold[T : Ordering, S](btree: BinaryTree[T], acc: S)(
+        pathStep: PartialFunction[(BinaryTree[T], S), (BinaryTree[T], S)]): S =
+        pathStep.lift(btree -> acc) map { case (t, a) => partialFold(t, a)(pathStep) } getOrElse(acc)
+
+      // O(h), h = tree height
+      def min[T : Ordering](btree: BinaryTree[T]): Option[T] = partialFold(btree, Option.empty[T]) {
+        case (Node(left, v, _), _) => left -> Some(v)
+      }
+
+      // O(h), h = tree height
+      def max[T : Ordering](btree: BinaryTree[T]): Option[T] = partialFold(btree, Option.empty[T]) {
+        case (Node(_, v, right), _) => right -> Some(v)
+      }
+
+      // O(h), h = tree height
+      def findFirst[T](btree: BinaryTree[T])(v: T)(implicit order: Ordering[T]): BinaryTree[T] =
+        partialFold(btree, Empty : BinaryTree[T]) {
+          case (node @ Node(left, nodeval, right), _) =>
+            import order.mkOrderingOps
+            if(nodeval == v) Empty -> node
+            else if(v < nodeval) left -> Empty
+            else right -> Empty
+          case _ => Empty -> Empty
+        }
+
+      // O(h), h = tree height
+      def height[T](binaryTree: BinaryTree[T]): Int = binaryTree match {
+        case Empty => 0
+        case Node(left, _, right) => 1+math.max(height(left), height(right))
+      }
+
+      // O(h), h = tree height
+      def insert[T](btree: BinaryTree[T])(v: T)(
+        implicit order: Ordering[T]
+      ): BinaryTree[T] = btree match {
+        case Empty => Node(Empty, v, Empty)
+        case node @ Node(left, nodeval, right) =>
+          import order.mkOrderingOps
+          if(nodeval == v) node
+          else if(v < nodeval) Node(insert(left)(v), nodeval, right)
+          else Node(left, nodeval, insert(right)(v))
+      }
+
+      // O(h), h = tree height
+      def insertNode[T](btree: BinaryTree[T])(node: Node[T])(
+        implicit order: Ordering[T]
+      ): BinaryTree[T] = btree match {
+        case Empty => node
+        case Node(left, nodeval, right) =>
+          import order.mkOrderingOps
+          if(node.v <= nodeval) Node(insertNode(left)(node), nodeval, right)
+          else Node(left, nodeval, insertNode(right)(node))
+      }
+
+      def toList[T : Ordering](btree: BinaryTree[T]): List[T] = btree match {
+        case Node(left, v, right) => toList(left) ++ List(v) ++ toList(right)
+        case _ => Nil
+      }
+
+      // O(h), h = tree height
+      def delete[T](btree: BinaryTree[T])(v: T)(
+        implicit order: Ordering[T]
+      ): BinaryTree[T] =
+        btree match {
+          case Empty => Empty
+          case n @ Node(left, nodeval, right) =>
+            import order.mkOrderingOps
+            if(nodeval == v)
+              (left, right) match {
+                case (Node(_, _, leftsRight), Node(rightsLeft, _, _)) =>
+                  val Seq(target, source) = Seq(left -> leftsRight, right -> rightsLeft) sortBy {
+                    case (_, toInsert) => height(toInsert)
+                  } map (_._1)
+                  source match {
+                    case Empty => target
+                    case source: Node[T] => insertNode(target)(source)
+                  }
+                case (n: Node[T], Empty) => n
+                case (Empty, n: Node[T]) => n
+              }
+            else if(v < nodeval)
+              Node(delete(left)(v), nodeval, right)
+            else
+              Node(left, nodeval, delete(right)(v))
+        }
+
+    }
+
+  }
+
+
+
 }
