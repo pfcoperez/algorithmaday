@@ -247,6 +247,7 @@ object Graphs {
                   }
                 case (n: Node[T], Empty) => n
                 case (Empty, n: Node[T]) => n
+                case _ => Empty
               }
             else if(v < nodeval)
               Node(delete(left)(v), nodeval, right)
