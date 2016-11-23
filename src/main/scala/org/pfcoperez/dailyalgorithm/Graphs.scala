@@ -162,7 +162,7 @@ object Graphs {
       def toList[T : Ordering](btree: BinaryTree[T]): List[T]
       def insert[T : Ordering](btree: BinaryTree[T])(v: T): BinaryTree[T]
       def delete[T: Ordering](btree: BinaryTree[T])(v: T): BinaryTree[T]
-      def height[T](binaryTree: BinaryTree[T]): Int
+      def height[T](binaryTree: BinaryTree[T], limit: Option[Int] = None): Int
     }
 
     object RawBinaryTree extends BinaryTreeOps {
@@ -194,9 +194,14 @@ object Graphs {
         }
 
       // O(h), h = tree height
-      def height[T](binaryTree: BinaryTree[T]): Int = binaryTree match {
-        case Empty => 0
-        case Node(left, _, right) => 1+math.max(height(left), height(right))
+      def height[T](binaryTree: BinaryTree[T], limit: Option[Int] = None): Int = {
+        def hrec(btree: BinaryTree[T], acc: Int): Int =
+          btree match {
+            case Empty => acc
+            case _ if limit.map(_ == acc).getOrElse(false) => acc
+            case Node(left, _, right) => math.max(hrec(left,acc+1), hrec(right, acc+1))
+          }
+        hrec(binaryTree, 0)
       }
 
       // O(h), h = tree height
@@ -266,15 +271,16 @@ object Graphs {
 
       def toList[T: Ordering](btree: BinaryTree[T]): List[T] = RawBinaryTree.toList(btree)
 
-      def height[T](binaryTree: BinaryTree[T]): Int = RawBinaryTree.height(binaryTree)
+      def height[T](binaryTree: BinaryTree[T], limit: Option[Int] = None): Int =
+        RawBinaryTree.height(binaryTree, limit)
 
-      def leftRotation[T]: PartialFunction[Node[T], Node[T]] = {
+      private def leftRotation[T]: PartialFunction[Node[T], Node[T]] = {
         case Node(left, value, Node(rightsLeft, rightsValue, rightsRight)) =>
           Node(Node(left, value, rightsLeft), rightsValue, rightsRight)
         case other => other
       }
 
-      def rightRotation[T]: PartialFunction[Node[T], Node[T]] = {
+      private def rightRotation[T]: PartialFunction[Node[T], Node[T]] = {
         case Node(Node(leftsLeft, leftsValue, leftsRight), value, right) =>
           Node(leftsLeft, leftsValue, Node(leftsRight, value, right))
         case other => other
@@ -294,7 +300,7 @@ object Graphs {
               else if(v < nodeval) {
                val (newLeft, lefth) = balancedInsert(left)
                val lefth2propagate = lefth flatMap { lh =>
-                 val rh = height(right)
+                 val rh = height(right, Some(lh+2))
                  if(lh - rh > 1) None
                  else Some(math.max(lh, rh)+1)
                }
@@ -308,7 +314,7 @@ object Graphs {
               else {
                 val (newRight, righth) = balancedInsert(right)
                 val righth2propagate = righth flatMap { rh =>
-                  val lh = height(left)
+                  val lh = height(left, Some(rh+2))
                   if(rh - lh > 1) None
                   else Some(math.max(lh, rh)+1)
                 }
