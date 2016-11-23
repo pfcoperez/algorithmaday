@@ -257,6 +257,79 @@ object Graphs {
 
     }
 
+    object BalancedBinaryTree extends BinaryTreeOps {
+      def min[T: Ordering](btree: BinaryTree[T]): Option[T] = RawBinaryTree.min(btree)
+      def max[T: Ordering](btree: BinaryTree[T]): Option[T] = RawBinaryTree.max(btree)
+
+      def findFirst[T: Ordering](btree: BinaryTree[T])(v: T): BinaryTree[T] =
+        RawBinaryTree.findFirst(btree)(v)
+
+      def toList[T: Ordering](btree: BinaryTree[T]): List[T] = RawBinaryTree.toList(btree)
+
+      def height[T](binaryTree: BinaryTree[T]): Int = RawBinaryTree.height(binaryTree)
+
+      def leftRotation[T]: PartialFunction[Node[T], Node[T]] = {
+        case Node(left, value, Node(rightsLeft, rightsValue, rightsRight)) =>
+          Node(Node(left, value, rightsLeft), rightsValue, rightsRight)
+        case other => other
+      }
+
+      def rightRotation[T]: PartialFunction[Node[T], Node[T]] = {
+        case Node(Node(leftsLeft, leftsValue, leftsRight), value, right) =>
+          Node(leftsLeft, leftsValue, Node(leftsRight, value, right))
+        case other => other
+      }
+
+      def insert[T](btree: BinaryTree[T])(v: T)(
+        implicit order: Ordering[T]
+      ): BinaryTree[T] = {
+
+        import order.mkOrderingOps
+
+        def balancedInsert(btree: BinaryTree[T]): (BinaryTree[T], Option[Int]) =
+          btree match {
+            case Empty => Node(Empty, v, Empty) -> Some(0)
+            case node @ Node(left, nodeval, right) =>
+              if(nodeval == v) node -> Some(height(node))
+              else if(v < nodeval) {
+               val (newLeft, lefth) = balancedInsert(left)
+               val lefth2propagate = lefth flatMap { lh =>
+                 val rh = height(right)
+                 if(lh - rh > 1) None
+                 else Some(math.max(lh, rh)+1)
+               }
+               val newNode =
+                 if(lefth.isEmpty != lefth2propagate.isEmpty)
+                   rightRotation(Node(newLeft, nodeval, right))
+                 else
+                   Node(newLeft, nodeval, right)
+               newNode -> lefth2propagate
+              }
+              else {
+                val (newRight, righth) = balancedInsert(right)
+                val righth2propagate = righth flatMap { rh =>
+                  val lh = height(left)
+                  if(rh - lh > 1) None
+                  else Some(math.max(lh, rh)+1)
+                }
+                val newNode =
+                  if(righth.isEmpty != righth2propagate.isEmpty)
+                    leftRotation(Node(left, nodeval, newRight))
+                  else
+                    Node(left, nodeval, newRight)
+                newNode -> righth2propagate
+              }
+          }
+
+        val (res, _) = balancedInsert(btree)
+        res
+
+      }
+
+      override def delete[T: Ordering](btree: BinaryTree[T])(v: T): BinaryTree[T] = ???
+
+    }
+
   }
 
 
