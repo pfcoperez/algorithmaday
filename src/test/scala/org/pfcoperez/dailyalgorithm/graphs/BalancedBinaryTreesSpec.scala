@@ -26,7 +26,10 @@ class BalancedBinaryTreesSpec extends FlatSpec with Matchers {
     val input = 1 to 1000
 
     val btree: BinaryTree[Int] = ((Empty: BinaryTree[Int]) /: input) {
-      (tree, element) => insert(tree)(element)
+      (tree, element) =>
+        val newTree = insert(tree)(element)
+        checkBalance(newTree) // Balance is tested after each insert
+        newTree
     }
 
     checkBalance(btree)
@@ -40,7 +43,10 @@ class BalancedBinaryTreesSpec extends FlatSpec with Matchers {
     val input = 1000 to 1 by -1
 
     val btree: BinaryTree[Int] = ((Empty: BinaryTree[Int]) /: input) {
-      (tree, element) => insert(tree)(element)
+      (tree, element) =>
+        val newTree = insert(tree)(element)
+        checkBalance(newTree) // Balance is tested after each insert
+        newTree
     }
 
     checkBalance(btree)
