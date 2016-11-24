@@ -289,46 +289,43 @@ object Graphs {
       def insert[T](btree: BinaryTree[T])(v: T)(
         implicit order: Ordering[T]
       ): BinaryTree[T] = {
-
         import order.mkOrderingOps
 
-        def balancedInsert(btree: BinaryTree[T]): (BinaryTree[T], Option[Int]) =
+        def balancedInsert(btree: BinaryTree[T]): (BinaryTree[T], Option[Int]) = {
+
+          def createBalancedSubtree(
+                                     targetBranch: BinaryTree[T],
+                                     secondBranch: BinaryTree[T],
+                                     rotation: PartialFunction[Node[T], Node[T]])(
+            nodeBuilder: (BinaryTree[T], BinaryTree[T]) => Node[T]
+          ): (BinaryTree[T], Option[Int]) = {
+            val (updatedBranch, heightTrack) = balancedInsert(targetBranch)
+            val h2propagate = heightTrack flatMap { h =>
+              val othersh = height(secondBranch, Some(h+2))
+              if(h - othersh > 1) None
+              else Some(math.max(h, othersh)+1)
+            }
+            val newNode = nodeBuilder(updatedBranch, secondBranch)
+            (if(heightTrack.isEmpty != h2propagate.isEmpty) rotation(newNode) else newNode, h2propagate)
+
+          }
+
           btree match {
             case Empty => Node(Empty, v, Empty) -> Some(0)
             case node @ Node(left, nodeval, right) =>
               if(nodeval == v) node -> Some(height(node))
-              else if(v < nodeval) {
-               val (newLeft, lefth) = balancedInsert(left)
-               val lefth2propagate = lefth flatMap { lh =>
-                 val rh = height(right, Some(lh+2))
-                 if(lh - rh > 1) None
-                 else Some(math.max(lh, rh)+1)
-               }
-               val newNode =
-                 if(lefth.isEmpty != lefth2propagate.isEmpty)
-                   rightRotation(Node(newLeft, nodeval, right))
-                 else
-                   Node(newLeft, nodeval, right)
-               newNode -> lefth2propagate
-              }
-              else {
-                val (newRight, righth) = balancedInsert(right)
-                val righth2propagate = righth flatMap { rh =>
-                  val lh = height(left, Some(rh+2))
-                  if(rh - lh > 1) None
-                  else Some(math.max(lh, rh)+1)
+              else if(v < nodeval)
+                createBalancedSubtree(left, right, rightRotation) {
+                  Node(_, nodeval, _)
                 }
-                val newNode =
-                  if(righth.isEmpty != righth2propagate.isEmpty)
-                    leftRotation(Node(left, nodeval, newRight))
-                  else
-                    Node(left, nodeval, newRight)
-                newNode -> righth2propagate
-              }
+              else
+                createBalancedSubtree(right, left, leftRotation) {
+                  (targetBranch, secondBranch) => Node(secondBranch, nodeval, targetBranch)
+                }
           }
+        }
 
-        val (res, _) = balancedInsert(btree)
-        res
+        balancedInsert(btree)._1
 
       }
 
