@@ -6,9 +6,31 @@ import scala.collection.immutable.Queue
 
 object Graphs {
 
-  trait DirectedGraph[T]
-  case class Node[T](value: T, children: List[Node[T]]) extends DirectedGraph[T]
-  case class Empty[T]() extends DirectedGraph[T]
+  type NoWeight = Unit
+  type Arch[T, W] = (W, Node[T, W])
+  type DirectedGraph[T] = DirectedWeighedGraph[T, NoWeight]
+
+  trait DirectedWeighedGraph[T, W]
+
+  object Node {
+    def apply[T](x: T, children: Seq[Node[T, NoWeight]]): Node[T, NoWeight] =
+      new Node(x, children.view.map(child => ((), child)).toList)
+
+    def unapply[T](arg: Node[T, NoWeight]): Option[(T, Seq[Node[T, NoWeight]])] =
+      Some(arg.value -> arg.children)
+  }
+
+  class Node[T, W : Ordering](val value: T, val archs: List[Arch[T, W]]) extends DirectedWeighedGraph[T, W] {
+    def children: Seq[Node[T, W]] = archs.view map { case (_, node: Node[T, W]) => node }
+  }
+  case class Empty[T, W : Ordering]() extends DirectedWeighedGraph[T, W]
+
+
+  implicit val noWeightOrdering = new Ordering[NoWeight] {
+    override def compare(x: NoWeight, y: NoWeight): Int = 0
+  }
+
+  implicit def arch2node[T, W](arch: Arch[T, W]): Node[T, W] = arch._2
 
   /**
     * O(n), n = number of nodes
@@ -44,7 +66,7 @@ object Graphs {
 
     def traverseRec(toVisit: Stack[DirectedGraph[T]], acc: List[S]): List[S] = toVisit.headOption collect {
       case Node(value, children) =>
-        val (newToVisit, toAcc) = f.lift(value) map { res =>
+        val (newToVisit: Stack[Node[T, NoWeight]], toAcc) = f.lift(value) map { res =>
           (children ++ toVisit.tail, Some(res))
         } getOrElse(toVisit.tail -> None)
         traverseRec(newToVisit, toAcc map (_::acc) getOrElse acc)
@@ -83,14 +105,14 @@ object Graphs {
     */
   implicit def graph2matrix[T](g: DirectedGraph[T]): Matrix[Boolean] = {
 
-    type AdjacencyMap = Map[Node[T], Set[Node[T]]]
+    type AdjacencyMap = Map[Node[T, NoWeight], Set[Node[T, NoWeight]]]
 
     def adjacencyMap(
                       toVisit: Queue[DirectedGraph[T]],
                       acc: AdjacencyMap,
-                      breadCrumbs: List[Node[T]],
-                      visited: Set[Node[T]]
-                    ): (AdjacencyMap, List[Node[T]]) =
+                      breadCrumbs: List[Node[T, NoWeight]],
+                      visited: Set[Node[T, NoWeight]]
+                    ): (AdjacencyMap, List[Node[T, NoWeight]]) =
       toVisit.headOption collect {
         case node @ Node(_, children) =>
           adjacencyMap(
@@ -152,7 +174,7 @@ object Graphs {
   object BinaryTrees {
 
     trait BinaryTree[+T]
-    case class Node[T](left: BinaryTree[T], v: T, right: BinaryTree[T]) extends BinaryTree[T]
+    case class Node[T, NoWeight](left: BinaryTree[T], v: T, right: BinaryTree[T]) extends BinaryTree[T]
     case object Empty extends BinaryTree[Nothing]
 
     trait BinaryTreeOps {
@@ -217,7 +239,7 @@ object Graphs {
       }
 
       // O(h), h = tree height
-      def insertNode[T](btree: BinaryTree[T])(node: Node[T])(
+      def insertNode[T, NoWeight](btree: BinaryTree[T])(node: Node[T, NoWeight])(
         implicit order: Ordering[T]
       ): BinaryTree[T] = btree match {
         case Empty => node
@@ -248,10 +270,10 @@ object Graphs {
                   } map (_._1)
                   source match {
                     case Empty => target
-                    case source: Node[T] => insertNode(target)(source)
+                    case source: Node[T, NoWeight] => insertNode(target)(source)
                   }
-                case (n: Node[T], Empty) => n
-                case (Empty, n: Node[T]) => n
+                case (n: Node[T, NoWeight], Empty) => n
+                case (Empty, n: Node[T, NoWeight]) => n
                 case _ => Empty
               }
             else if(v < nodeval)
@@ -274,13 +296,13 @@ object Graphs {
       def height[T](binaryTree: BinaryTree[T], limit: Option[Int] = None): Int =
         RawBinaryTree.height(binaryTree, limit)
 
-      private def leftRotation[T]: PartialFunction[Node[T], Node[T]] = {
+      private def leftRotation[T]: PartialFunction[Node[T, NoWeight], Node[T, NoWeight]] = {
         case Node(left, value, Node(rightsLeft, rightsValue, rightsRight)) =>
           Node(Node(left, value, rightsLeft), rightsValue, rightsRight)
         case other => other
       }
 
-      private def rightRotation[T]: PartialFunction[Node[T], Node[T]] = {
+      private def rightRotation[T]: PartialFunction[Node[T, NoWeight], Node[T, NoWeight]] = {
         case Node(Node(leftsLeft, leftsValue, leftsRight), value, right) =>
           Node(leftsLeft, leftsValue, Node(leftsRight, value, right))
         case other => other
@@ -296,8 +318,8 @@ object Graphs {
           def createBalancedSubtree(
                                      targetBranch: BinaryTree[T],
                                      secondBranch: BinaryTree[T],
-                                     rotation: PartialFunction[Node[T], Node[T]])(
-            nodeBuilder: (BinaryTree[T], BinaryTree[T]) => Node[T]
+                                     rotation: PartialFunction[Node[T, NoWeight], Node[T, NoWeight]])(
+            nodeBuilder: (BinaryTree[T], BinaryTree[T]) => Node[T, NoWeight]
           ): (BinaryTree[T], Option[Int]) = {
             val (updatedBranch, heightTrack) = balancedInsert(targetBranch)
             val h2propagate = heightTrack flatMap { h =>
