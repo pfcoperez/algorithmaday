@@ -12,6 +12,11 @@ object Graphs {
 
   trait DirectedWeighedGraph[T, W]
 
+  object WeighedNode {
+    def apply[T, W](x: T, archs: Seq[(W, Node[T, W])]): Node[T, W] =
+      new Node(x, archs.toList)
+  }
+
   object Node {
     def apply[T](x: T, children: Seq[Node[T, NoWeight]]): Node[T, NoWeight] =
       new Node(x, children.view.map(child => ((), child)).toList)
@@ -20,15 +25,11 @@ object Graphs {
       Some(arg.value -> arg.children)
   }
 
-  class Node[T, W : Ordering](val value: T, val archs: List[Arch[T, W]]) extends DirectedWeighedGraph[T, W] {
+  class Node[T, W](val value: T, val archs: List[Arch[T, W]]) extends DirectedWeighedGraph[T, W] {
     def children: Seq[Node[T, W]] = archs.view map { case (_, node: Node[T, W]) => node }
   }
-  case class Empty[T, W : Ordering]() extends DirectedWeighedGraph[T, W]
+  case class Empty[T, W]() extends DirectedWeighedGraph[T, W]
 
-
-  implicit val noWeightOrdering = new Ordering[NoWeight] {
-    override def compare(x: NoWeight, y: NoWeight): Int = 0
-  }
 
   implicit def arch2node[T, W](arch: Arch[T, W]): Node[T, W] = arch._2
 
@@ -130,6 +131,34 @@ object Graphs {
     positionalValues[Boolean](pos2node.length, pos2node.length) {
       case (i, j) => node2adjacents get(pos2node(i)) map(_.contains(pos2node(j))) getOrElse false
     }
+
+  }
+
+  def minDistancesDijkstra[T, W](root: Node[T, W])(
+    implicit weightNumeric: Numeric[W]): Map[Node[T,W], W] = {
+
+    import weightNumeric.{mkNumericOps, mkOrderingOps}
+
+    type NodeSet = Set[Node[T, W]]
+    type Distances = Map[Node[T, W], W]
+
+    def dijkstraIteration(visited: NodeSet, distances: Distances): (NodeSet, Distances) = {
+      val toVisitDistances = distances.filter(entry => !visited.contains(entry._1))
+      if(toVisitDistances.nonEmpty) {
+        val (selectedNode, d) = toVisitDistances.minBy(_._2)
+        val newDistances = (distances /: selectedNode.archs) {
+          case (prevDistances, (delta: W, goalNode)) =>
+            val newDistanceValue = prevDistances.get(goalNode) collect {
+              case prevDistance: W if prevDistance <= d + delta => prevDistance
+            } getOrElse (d + delta)
+            prevDistances.updated(goalNode,  newDistanceValue)
+          }
+        dijkstraIteration(visited + selectedNode, newDistances)
+      } else (visited, distances)
+
+    }
+
+    dijkstraIteration(Set.empty, Map(root -> weightNumeric.zero))._2
 
   }
 
