@@ -18,7 +18,7 @@ object Graphs {
   }
 
   object Node {
-    def apply[T](x: T, children: Seq[Node[T, NoWeight]]): Node[T, NoWeight] =
+    def apply[T](x: T, children: Seq[Node[T, NoWeight]] = Seq.empty): Node[T, NoWeight] =
       new Node(x, children.view.map(child => ((), child)).toList)
 
     def unapply[T](arg: Node[T, NoWeight]): Option[(T, Seq[Node[T, NoWeight]])] =
@@ -131,6 +131,49 @@ object Graphs {
     positionalValues[Boolean](pos2node.length, pos2node.length) {
       case (i, j) => node2adjacents get(pos2node(i)) map(_.contains(pos2node(j))) getOrElse false
     }
+
+  }
+
+  def atSameConnectedComponent[T, W](a: Node[T, W], b: Node[T, W]): Boolean = {
+    import scala.collection.immutable.Queue
+    case class ExplorationState(
+                                 lastVisited: Option[Node[T, W]],
+                                 visited: Set[Node[T,W]],
+                                 toVisit: Queue[Node[T, W]]
+                               )
+
+    def bidirectionalSearch(
+                             fromA: ExplorationState,
+                             fromB: ExplorationState
+                           ): Boolean = {
+      def explorationStep(st: ExplorationState, goal: Node[T, W]): ExplorationState =
+        st.toVisit.headOption map { currentNode =>
+          if(currentNode.children contains goal) st
+          else {
+            ExplorationState(
+              Some(currentNode),
+              st.visited + currentNode,
+              st.toVisit.tail ++ currentNode.children.filterNot(st.visited contains _)
+            )
+          }
+        } getOrElse st
+
+      val newFromA @ ExplorationState(Some(lastFromA), visitedFromA, _) = explorationStep(fromA, b)
+      val newFromB @ ExplorationState(Some(lastFromB), visitedFromB, _) = explorationStep(fromB, b)
+
+      val touchedFromA = visitedFromB contains lastFromA
+      val touchedFromB = visitedFromA contains lastFromB
+
+      val changedState = (newFromA != fromA) || (newFromB != fromB)
+
+      touchedFromA || touchedFromB || (changedState && bidirectionalSearch(newFromA, newFromB))
+
+    }
+
+    bidirectionalSearch(
+      ExplorationState(None, Set.empty, Queue(a)),
+      ExplorationState(None, Set.empty, Queue(b))
+    )
 
   }
 
