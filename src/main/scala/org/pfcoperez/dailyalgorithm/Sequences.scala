@@ -68,4 +68,17 @@ object Sequences {
     recMinRot(Vector.fill(s.size)(-1), 0, 1)
   }
 
+  /**
+    * Checks whether a sequence if a subsequence of another
+    *
+    * O(n), n = size of s
+    */
+  def isSubseq[T](s: Seq[T])(ss: Seq[T]): Boolean =
+    (ss /: s) {
+      case (Seq(), _) => Seq()
+      case (remaining, x) if(remaining.head == x) => remaining.tail
+      case _ => ss
+    } isEmpty
+
+
 }
