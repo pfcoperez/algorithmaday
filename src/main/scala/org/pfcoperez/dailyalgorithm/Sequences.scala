@@ -80,5 +80,56 @@ object Sequences {
       case _ => ss
     } isEmpty
 
+  /**
+    * Search for an element within an cyclic-ordered vector
+    * returning its position if found.
+    * O(log n)
+    */
+  def binarySearchInCycle[T](v: Vector[T])(x: T)(
+    implicit ordering: Ordering[T], i: Int = 0, j: Int = v.size-1
+  ): Option[Int] = {
+    import ordering.mkOrderingOps
+
+    val l = j-i+1
+    val midIdx = l/2
+
+    if(i > j) None
+    else if(v(midIdx) == x) Some(midIdx)
+    else {
+      type SearchFunction = (Int, Int) => Option[Int]
+
+      val searchFunctions: (SearchFunction, SearchFunction) =
+        (binarySearch(v)(x)(ordering, _, _), binarySearchInCycle(v)(x)(ordering, _, _))
+
+      if(v(i) <= v(midIdx)) // Left side ordered
+          if(v(i) >= x && x < v(midIdx)) searchFunctions._1(i, midIdx-1)
+          else searchFunctions._2(midIdx+1, j)
+      else // Right side ordered
+          if(v(midIdx)< x && x <= v(j)) searchFunctions._1(midIdx+1, j)
+          else searchFunctions._2(i, midIdx-1)
+
+    }
+
+  }
+
+  /**
+    * Search for an element within an ordered vector returning its position if found.
+    * O(log n)
+    */
+  def binarySearch[T](v: Vector[T])(x: T)(
+    implicit ordering: Ordering[T], i: Int = 0, j: Int = v.size-1
+  ): Option[Int] = {
+    import ordering.mkOrderingOps
+
+    val l = j-i+1
+    val midIdx = i+l/2
+
+    if(i > j) None
+    else if(x == v(midIdx)) Some(midIdx)
+    else if(x < v(midIdx)) binarySearch(v)(x)(ordering, i, midIdx-1)
+    else binarySearch(v)(x)(ordering, midIdx+1, j)
+  }
+
+  def rotateLeft[T](v: Vector[T])(idx: Int): Vector[T] = { val (a,b) = v.splitAt(idx); b ++ a }
 
 }
