@@ -1,22 +1,8 @@
+package org.pfcoperez.dailyalgorithm.applications
+
 object RecoverWords extends App {
 
-  case class TrieNode[KE, V](v: Option[V], children: Map[KE, TrieNode[KE, V]]) {
-
-    def insert(k: Seq[KE])(newVal: V): TrieNode[KE, V] = k match {
-      case Seq() => copy(v = Some(newVal))
-      case _ =>
-        val keyElement = k.head
-        val newChild = keyElement -> children.getOrElse(keyElement, TrieNode[KE, V](None, Map.empty)).insert(k.tail)(newVal)
-        copy(children = children + newChild)
-    }
-
-    def find(k: Seq[KE]): Option[V] = k.headOption flatMap { keyElement =>
-      for(child <- children.get(keyElement); res <- child.find(k.tail)) yield res
-    } orElse v
-
-    def contains(k: Seq[KE]): Boolean = find(k).isDefined
-
-  }
+  import org.pfcoperez.dailyalgorithm.Graphs.Tries._
 
   /**
     * Restores a message whose "spaces" have been removed unsing a trie-dictionary
