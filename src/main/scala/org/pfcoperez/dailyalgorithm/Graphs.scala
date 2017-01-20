@@ -204,7 +204,7 @@ object Graphs {
     dijkstraIteration(Set.empty, Map(root -> weightNumeric.zero))._2
 
   }
-
+  
   object LinkedStructures {
 
     object LinkedList {
@@ -246,7 +246,7 @@ object Graphs {
   object BinaryTrees {
 
     trait BinaryTree[+T]
-    case class Node[T, NoWeight](left: BinaryTree[T], v: T, right: BinaryTree[T]) extends BinaryTree[T]
+    case class Node[T](left: BinaryTree[T], v: T, right: BinaryTree[T]) extends BinaryTree[T]
     case object Empty extends BinaryTree[Nothing]
 
     trait BinaryTreeOps {
@@ -311,7 +311,7 @@ object Graphs {
       }
 
       // O(h), h = tree height
-      def insertNode[T, NoWeight](btree: BinaryTree[T])(node: Node[T, NoWeight])(
+      def insertNode[T, NoWeight](btree: BinaryTree[T])(node: Node[T])(
         implicit order: Ordering[T]
       ): BinaryTree[T] = btree match {
         case Empty => node
@@ -342,10 +342,10 @@ object Graphs {
                   } map (_._1)
                   source match {
                     case Empty => target
-                    case source: Node[T, NoWeight] => insertNode(target)(source)
+                    case source: Node[T] => insertNode(target)(source)
                   }
-                case (n: Node[T, NoWeight], Empty) => n
-                case (Empty, n: Node[T, NoWeight]) => n
+                case (n: Node[T], Empty) => n
+                case (Empty, n: Node[T]) => n
                 case _ => Empty
               }
             else if(v < nodeval)
@@ -368,13 +368,13 @@ object Graphs {
       def height[T](binaryTree: BinaryTree[T], limit: Option[Int] = None): Int =
         RawBinaryTree.height(binaryTree, limit)
 
-      private def leftRotation[T]: PartialFunction[Node[T, NoWeight], Node[T, NoWeight]] = {
+      private def leftRotation[T]: PartialFunction[Node[T], Node[T]] = {
         case Node(left, value, Node(rightsLeft, rightsValue, rightsRight)) =>
           Node(Node(left, value, rightsLeft), rightsValue, rightsRight)
         case other => other
       }
 
-      private def rightRotation[T]: PartialFunction[Node[T, NoWeight], Node[T, NoWeight]] = {
+      private def rightRotation[T]: PartialFunction[Node[T], Node[T]] = {
         case Node(Node(leftsLeft, leftsValue, leftsRight), value, right) =>
           Node(leftsLeft, leftsValue, Node(leftsRight, value, right))
         case other => other
@@ -390,8 +390,8 @@ object Graphs {
           def createBalancedSubtree(
                                      targetBranch: BinaryTree[T],
                                      secondBranch: BinaryTree[T],
-                                     rotation: PartialFunction[Node[T, NoWeight], Node[T, NoWeight]])(
-            nodeBuilder: (BinaryTree[T], BinaryTree[T]) => Node[T, NoWeight]
+                                     rotation: PartialFunction[Node[T], Node[T]])(
+            nodeBuilder: (BinaryTree[T], BinaryTree[T]) => Node[T]
           ): (BinaryTree[T], Option[Int]) = {
             val (updatedBranch, heightTrack) = balancedInsert(targetBranch)
             val h2propagate = heightTrack flatMap { h =>
