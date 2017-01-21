@@ -10,7 +10,7 @@ object Graphs {
   type Arch[T, W] = (W, Node[T, W])
   type DirectedGraph[T] = DirectedWeighedGraph[T, NoWeight]
 
-  trait DirectedWeighedGraph[T, W]
+  trait DirectedWeighedGraph[+T, +W]
 
   object WeighedNode {
     def apply[T, W](x: T, archs: Seq[(W, Node[T, W])]): Node[T, W] =
@@ -25,13 +25,48 @@ object Graphs {
       Some(arg.value -> arg.children)
   }
 
-  class Node[T, W](val value: T, val archs: List[Arch[T, W]]) extends DirectedWeighedGraph[T, W] {
+  class Node[+T, +W](val value: T, val archs: List[Arch[T, W]]) extends DirectedWeighedGraph[T, W] {
     def children: Seq[Node[T, W]] = archs.view map { case (_, node: Node[T, W]) => node }
   }
-  case class Empty[T, W]() extends DirectedWeighedGraph[T, W]
+  case class Empty() extends DirectedWeighedGraph[Nothing, Nothing]
 
 
   implicit def arch2node[T, W](arch: Arch[T, W]): Node[T, W] = arch._2
+
+  /**
+    * Map function to build a new map from an existing one
+    * allowing node value modifications as well as arches' weights.
+    *
+    * O(n + m), n = number of nodes in the graph, m = number of arches in the graph
+    *
+    */
+  def map[T, W, NT, NW](dg: DirectedWeighedGraph[T, W])(
+    fValues: T => NT,
+    fWeights: W => NW
+  ): DirectedWeighedGraph[NT, NW] = {
+
+    def mapImp(
+                n: Node[T, W],
+                visited: Map[Node[T, W], Node[NT, NW]] = Map.empty
+              ): (Node[NT, NW], Map[Node[T, W], Node[NT, NW]]) =
+
+        visited.get(n).map(_ -> visited) getOrElse {
+          val (newArchs, newVisited) = ((List.empty[Arch[NT, NW]], visited) /: n.archs) {
+            case ((prevArchs, prevVisited), (weight, child)) =>
+              val (newChild, subTreeVisited) = mapImp(child, prevVisited)
+              val updatedArches = (fWeights(weight), newChild) :: prevArchs
+              updatedArches -> subTreeVisited
+          }
+          val newNode = new Node(fValues(n.value), newArchs.reverse)
+          newNode -> (newVisited + (n -> newNode))
+        }
+
+    dg match {
+      case e: Empty => e
+      case node: Node[T, W] => mapImp(node, Map.empty)._1
+    }
+
+  }
 
   /**
     * O(n), n = number of nodes
@@ -190,9 +225,9 @@ object Graphs {
       if(toVisitDistances.nonEmpty) {
         val (selectedNode, d) = toVisitDistances.minBy(_._2)
         val newDistances = (distances /: selectedNode.archs) {
-          case (prevDistances, (delta: W, goalNode)) =>
+          case (prevDistances, (delta, goalNode)) =>
             val newDistanceValue = prevDistances.get(goalNode) collect {
-              case prevDistance: W if prevDistance <= d + delta => prevDistance
+              case prevDistance if prevDistance <= d + delta => prevDistance
             } getOrElse (d + delta)
             prevDistances.updated(goalNode,  newDistanceValue)
           }
@@ -204,7 +239,7 @@ object Graphs {
     dijkstraIteration(Set.empty, Map(root -> weightNumeric.zero))._2
 
   }
-  
+
   object LinkedStructures {
 
     object LinkedList {
