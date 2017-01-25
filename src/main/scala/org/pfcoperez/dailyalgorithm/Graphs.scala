@@ -240,6 +240,41 @@ object Graphs {
 
   }
 
+  /**
+    *
+    * This function generates a reference map from each node
+    * to the set of parents of that node provided the complete collection
+    * of nodes in the graph.
+    *
+    * O(n+m), n = Number of nodes in the graph, m = number of arches
+    *
+    * @param nodes Full collection of nodes in the graph (target forest)
+    * @return
+    */
+  def findParents[T, W](nodes: Seq[Node[T, W]]): Map[Node[T, W], Set[Node[T, W]]] = {
+
+    type Node2Parent = Map[Node[T, W], Set[Node[T, W]]]
+
+    def depthFirstNode2Parent(
+                               visited: Set[Node[T, W]],
+                               toVisit: Seq[Node[T, W]])(acc: Node2Parent): Node2Parent =
+      if(toVisit.isEmpty) acc
+      else {
+        val (Seq(current), pending) = toVisit.splitAt(1)
+        val updatedMap = (acc /: current.children) {
+          (prevMap, child) =>
+            prevMap + {
+              (child, prevMap.getOrElse(child, Set.empty) + current)
+            }
+        }
+        val newToVisit = current.children.filterNot(visited contains _) ++ pending
+        depthFirstNode2Parent(visited + current, newToVisit)(updatedMap)
+      }
+
+    depthFirstNode2Parent(Set.empty, nodes)(Map.empty)
+
+  }
+
   object LinkedStructures {
 
     object LinkedList {
