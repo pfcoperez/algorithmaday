@@ -74,4 +74,19 @@ object Combinatorics {
 
   }
 
+  /**
+    * Cartesian product of the elements of a sequence of collections
+    *
+    * O(N1*N2*...*NM), Ni = Each collection size
+    * 
+    */
+  def cartesianProduct[T](collections: Seq[Seq[T]]): Seq[Seq[T]] =
+    (collections :\ Seq(Seq.empty[T])) {
+      (collection, partialProducts) =>
+        for {
+          partialRes <- partialProducts
+          v <- collection.reverse
+        } yield v +: partialRes
+      }
+
 }
