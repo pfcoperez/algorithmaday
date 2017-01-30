@@ -46,6 +46,30 @@ object Geometry {
       Some(recCH(first:: zeroth :: Nil, points) init)
     }
 
+  /*
+    Gift wrapping Convex Hull algorithm.
+    O(nm) where: n = Number of points in input & m = number of points in Convex Hull Polygon
+   */
+  def fasterGiftWrappingConvexHull(points: Set[Point]): Option[List[Point]] =
+    if(points.size < 3) None
+    else {
+      val zeroth = Vect(0,-1) //Not part of the convex hull, to be removed
+      val first = points.minBy(_.x) //Leftmost point
+
+      import Primitives.{simplexVolume => signedArea}
+
+      def recCH(ch: List[Point], remaining: Set[Point]): List[Point] =
+        ch match {
+          case current::prev::_ if !remaining.isEmpty =>
+            //Select `next` to maximize angle between current2prev and current2next segments
+            val next = remaining.maxBy(third => math.abs(signedArea(Seq(prev, current, third)).get))
+            if(next == first) ch else recCH(next :: ch, remaining-next)
+          case _ => ch
+        }
+
+      Some(recCH(first:: zeroth :: Nil, points) init)
+    }
+
   object Primitives {
 
     /**

@@ -50,6 +50,7 @@ class ConvexHullSpec extends WordSpec with Matchers {
       case (input, expected) => s"CH($input)" should {
         s"result in $expected" in {
           giftWrappingConvexHull(input) shouldBe expected
+          fasterGiftWrappingConvexHull(input) shouldBe expected
         }
       }
     }
