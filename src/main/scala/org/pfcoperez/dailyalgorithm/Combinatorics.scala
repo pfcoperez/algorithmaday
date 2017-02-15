@@ -74,4 +74,34 @@ object Combinatorics {
 
   }
 
+  /**
+    * Cartesian product of the elements of a sequence of collections
+    *
+    * O(N1*N2*...*NM), Ni = Each collection size
+    * 
+    */
+  def cartesianProduct[T](collections: Seq[Seq[T]]): Seq[Seq[T]] =
+    (collections :\ Seq(Seq.empty[T])) {
+      (collection, partialProducts) =>
+        for {
+          partialRes <- partialProducts
+          v <- collection.reverse
+        } yield v +: partialRes
+      }
+
+  import cats._
+  import cats.implicits._
+
+  /**
+    * Cartesian product of the elements of a sequence of collections, using
+    * Applicative "ap" operation.
+    *
+    * O(N1*N2*...*NM), Ni = Each collection size
+    *
+    */
+  def cartesianProductWithCats[T](collections: List[T]*): Seq[Seq[T]] =
+    (List(List.empty[T]) /: collections) { (acc, col) =>
+        Applicative[List].ap(acc.map((right: List[T]) => (x: T) => x :: right))(col)
+    }
+
 }
