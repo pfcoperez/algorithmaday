@@ -4,7 +4,7 @@ import org.pfcoperez.dailyalgorithm.Algebra.Matrix.Matrix
 import org.pfcoperez.dailyalgorithm.Algebra.Matrix.NumericMatrix
 import org.pfcoperez.dailyalgorithm.Algebra.Matrix.NumericMatrix.Implicits._
 
-import scala.util.Try
+import scala.util.{Success, Try}
 
 object Geometry {
 
@@ -53,21 +53,28 @@ object Geometry {
   def fasterGiftWrappingConvexHull(points: Set[Point]): Option[List[Point]] =
     if(points.size < 3) None
     else {
-      val zeroth = Vect(0,-1) //Not part of the convex hull, to be removed
       val first = points.minBy(_.x) //Leftmost point
 
-      import Primitives.{simplexVolume => signedArea}
+      import Primitives.{pointRelative2boundary, Above}
 
       def recCH(ch: List[Point], remaining: Set[Point]): List[Point] =
         ch match {
-          case current::prev::_ if !remaining.isEmpty =>
-            //Select `next` to maximize angle between current2prev and current2next segments
-            val next = remaining.maxBy(third => math.abs(signedArea(Seq(prev, current, third)).get))
-            if(next == first) ch else recCH(next :: ch, remaining-next)
+          case prev::_ if !remaining.isEmpty =>
+            val next = (remaining.head /: remaining.tail) {
+              (currentCandidate, newCandidate) =>
+                val currentSegment = Seq(prev, currentCandidate)
+                if(pointRelative2boundary(newCandidate, currentSegment) == Success(Above))
+                  newCandidate
+                else
+                  currentCandidate
+            }
+            if(ch.head == first ||
+                pointRelative2boundary(next, Seq(ch.head, first)) == Success(Above)
+            ) recCH(next :: ch, remaining-next) else ch
           case _ => ch
         }
 
-      Some(recCH(first:: zeroth :: Nil, points) init)
+      Some(recCH(first :: Nil, points-first))
     }
 
   object Primitives {

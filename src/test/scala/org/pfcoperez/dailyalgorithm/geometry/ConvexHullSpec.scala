@@ -11,10 +11,10 @@ class ConvexHullSpec extends WordSpec with Matchers {
   "Gift Wrapping 2D Convex Hull algorithm" when {
 
     val valuesAndExpectations = Seq(
-      Set[Vect]((-1.0,-1.0), (1.0, -1.0), (1.0,1.0), (-1.0,1.0), (0.0,0.0)) -> Some(List[Vect]((1.0,-1.0), (1.0,1.0), (-1.0,1.0), (-1.0,-1.0))),
+      Set[Vect]((-1.0,-1.0), (1.0, -1.0), (1.0,1.0), (-1.0,1.0), (0.0,0.0)) -> Some(Set[Vect]((1.0,-1.0), (1.0,1.0), (-1.0,1.0), (-1.0,-1.0))),
       Set[Vect]((-1.0,1.0), (0.0,0.0)) -> None,
-      Set[Vect]((-1.0,0.0), (0.0,0.0), (1.0,1.0), (0.5, 0.5)) -> Some(List[Vect]((0.0,0.0), (1.0,1.0), (-1.0,0.0))),
-      Set[Vect]((10.0,10.0), (20.0,25.0), (30.0,30.0), (10.0, 30.0)) -> Some(List[Vect]((10.0,30.0), (30.0,30.0), (10.0,10.0))),
+      Set[Vect]((-1.0,0.0), (0.0,0.0), (1.0,1.0), (0.5, 0.5)) -> Some(Set[Vect]((0.0,0.0), (1.0,1.0), (-1.0,0.0))),
+      Set[Vect]((10.0,10.0), (20.0,25.0), (30.0,30.0), (10.0, 30.0)) -> Some(Set[Vect]((10.0,30.0), (30.0,30.0), (10.0,10.0))),
       Set[Vect](
         (4.4,14.0),
         (6.7,15.25),
@@ -32,7 +32,7 @@ class ConvexHullSpec extends WordSpec with Matchers {
         (13.8,7.3),
         (12.9,3.1),
         (11.0,1.1)
-      ) -> Some(List[Vect](
+      ) -> Some(Set[Vect](
         (5.3, 2.4),
         (11.0, 1.1),
         (12.9, 3.1),
@@ -49,8 +49,8 @@ class ConvexHullSpec extends WordSpec with Matchers {
     valuesAndExpectations foreach {
       case (input, expected) => s"CH($input)" should {
         s"result in $expected" in {
-          giftWrappingConvexHull(input) shouldBe expected
-          fasterGiftWrappingConvexHull(input) shouldBe expected
+          giftWrappingConvexHull(input).map(_.toSet) shouldBe expected
+          fasterGiftWrappingConvexHull(input).map(_.toSet) shouldBe expected
         }
       }
     }
