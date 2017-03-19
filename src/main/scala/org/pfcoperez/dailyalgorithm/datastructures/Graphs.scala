@@ -1,4 +1,4 @@
-package org.pfcoperez.dailyalgorithm
+package org.pfcoperez.dailyalgorithm.datastructures
 
 import org.pfcoperez.dailyalgorithm.Algebra.Matrix.{Matrix, positionalValues}
 

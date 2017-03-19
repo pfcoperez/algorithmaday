@@ -1,6 +1,6 @@
 package org.pfcoperez.dailyalgorithm.applications
 
-import org.pfcoperez.dailyalgorithm.Graphs.BinaryTrees._
+import org.pfcoperez.dailyalgorithm.datastructures.Graphs.BinaryTrees._
 
 object ProjectedBinaryTree extends App {
 

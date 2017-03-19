@@ -1,6 +1,6 @@
-package org.pfcoperez.dailyalgorithm.graphs
+package org.pfcoperez.dailyalgorithm.datastructures.graphs
 
-import org.pfcoperez.dailyalgorithm.Graphs._
+import org.pfcoperez.dailyalgorithm.datastructures.Graphs._
 import org.scalatest.{FlatSpec, Matchers}
 
 object DijkstraSpec {

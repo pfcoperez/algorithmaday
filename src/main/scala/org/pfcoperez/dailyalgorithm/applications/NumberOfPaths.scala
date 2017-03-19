@@ -3,7 +3,7 @@ package org.pfcoperez.dailyalgorithm.applications
 import org.pfcoperez.dailyalgorithm.Algebra.Matrix.NumericMatrix.MultiplicationMethod
 import org.pfcoperez.dailyalgorithm.Algebra.Matrix.NumericMatrix.MultiplicationMethods._
 import org.pfcoperez.dailyalgorithm.Algebra.Matrix._
-import org.pfcoperez.dailyalgorithm.Graphs._
+import org.pfcoperez.dailyalgorithm.datastructures.Graphs._
 
 object NumberOfPaths {
 

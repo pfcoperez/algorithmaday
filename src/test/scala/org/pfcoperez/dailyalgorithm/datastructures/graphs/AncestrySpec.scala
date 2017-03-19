@@ -1,6 +1,6 @@
-package org.pfcoperez.dailyalgorithm.graphs
+package org.pfcoperez.dailyalgorithm.datastructures.graphs
 
-import org.pfcoperez.dailyalgorithm.Graphs.{Node, findParents}
+import org.pfcoperez.dailyalgorithm.datastructures.Graphs.{Node, findParents}
 import org.scalatest.{FlatSpec, Matchers}
 
 class AncestrySpec extends FlatSpec with Matchers {

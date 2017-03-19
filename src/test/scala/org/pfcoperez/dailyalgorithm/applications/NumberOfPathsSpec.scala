@@ -1,6 +1,6 @@
 package org.pfcoperez.dailyalgorithm.applications
 
-import org.pfcoperez.dailyalgorithm.Graphs.{DirectedGraph, Node}
+import org.pfcoperez.dailyalgorithm.datastructures.Graphs.{DirectedGraph, Node}
 import org.pfcoperez.dailyalgorithm.applications.NumberOfPaths.numberOfPaths
 import org.scalatest.{FlatSpec, Matchers}
 

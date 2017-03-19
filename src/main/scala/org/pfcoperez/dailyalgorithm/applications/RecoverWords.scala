@@ -2,7 +2,7 @@ package org.pfcoperez.dailyalgorithm.applications
 
 object RecoverWords extends App {
 
-  import org.pfcoperez.dailyalgorithm.Graphs.Tries._
+  import org.pfcoperez.dailyalgorithm.datastructures.Graphs.Tries._
 
   /**
     * Restores a message whose "spaces" have been removed unsing a trie-dictionary

@@ -1,7 +1,7 @@
 package org.pfcoperez.dailyalgorithm.applications
 
 import scala.collection.immutable.Queue
-import org.pfcoperez.dailyalgorithm.Graphs.BinaryTrees._
+import org.pfcoperez.dailyalgorithm.datastructures.Graphs.BinaryTrees._
 
 object BFSAndApps extends App {
 

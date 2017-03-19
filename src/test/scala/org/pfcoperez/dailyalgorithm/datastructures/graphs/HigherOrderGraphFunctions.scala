@@ -1,9 +1,9 @@
-package org.pfcoperez.dailyalgorithm.graphs
+package org.pfcoperez.dailyalgorithm.datastructures.graphs
 
 import org.scalatest.{Matchers, WordSpec}
 import org.scalatest.Inspectors._
 
-import org.pfcoperez.dailyalgorithm.Graphs._
+import org.pfcoperez.dailyalgorithm.datastructures.Graphs._
 
 class HigherOrderGraphFunctions extends WordSpec with Matchers {
 
