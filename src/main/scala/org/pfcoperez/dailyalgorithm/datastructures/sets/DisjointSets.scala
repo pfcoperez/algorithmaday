@@ -80,6 +80,14 @@ class DisjointSets[T] private(private val entries: Map[T, Entry[T]] = Map.empty)
       case entry @ Entry(_, parent) => flattenBranch(parent, (label, entry)::toPropagate)
     }
 
+  def toSets: (Map[T, Set[T]], DisjointSets[T]) =
+    ((Map.empty[T, Set[T]], this) /: entries.keys) {
+      case ((acc, dsets), v) =>
+        val (Some(label), newSt) = dsets.find(v)
+        val updatedSet = acc.getOrElse(label, Set()) + v
+        (acc + (label -> updatedSet), newSt)
+    }
+
 }
 
 object DisjointSets {
