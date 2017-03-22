@@ -9,16 +9,17 @@ class DisjointSets[T] private(private val entries: Map[T, Entry[T]] = Map.empty)
     *
     * @param a Set `a`
     * @param b Set `b`
-    * @return (Both labels are contained and joined, new [[DisjointSets]]
-    *         with updated state)
+    * @return (new [[DisjointSets]] with updated state,
+    *   `true` if Both labels are contained and joined
+    * )
     */
-  def union(a: T, b: T): (Boolean, DisjointSets[T]) = {
+  def union(a: T, b: T): (DisjointSets[T], Boolean) = {
 
     val result: Option[DisjointSets[T]] = {
-      val (opa, phase1) = find(a)
+      val (phase1, opa) = find(a)
       for {
         pa <- opa
-        (opb, phase2) = phase1.find(b)
+        (phase2, opb) = phase1.find(b)
         pb <- opb
       } yield {
         val ((parent, parentEntry: Entry[T]), (child, childEntry: Entry[T])) = {
@@ -35,7 +36,7 @@ class DisjointSets[T] private(private val entries: Map[T, Entry[T]] = Map.empty)
         )
       }
     }
-    result.isDefined -> result.getOrElse(this)
+    result.getOrElse(this) -> result.isDefined
 
   }
 
@@ -49,13 +50,13 @@ class DisjointSets[T] private(private val entries: Map[T, Entry[T]] = Map.empty)
   /**
     * Find the label of the provided value.
     * @param v Value whose label is to be found
-    * @return 'None' if the value doesn't exist, Some(label) otherwise
+    * @return (new state, 'None' if the value doesn't exist, Some(label) otherwise)
     */
-  def find(v: T): (Option[T], DisjointSets[T]) = {
+  def find(v: T): (DisjointSets[T], Option[T]) = {
     val newState = entries.get(v) map { _ =>
       flattenBranch(v)
     }
-    (newState map { st => st.entries(v).parent }, newState.getOrElse(this))
+    (newState.getOrElse(this), newState map { st => st.entries(v).parent })
   }
 
   /**
@@ -72,12 +73,12 @@ class DisjointSets[T] private(private val entries: Map[T, Entry[T]] = Map.empty)
     * Generates a map from labels to sets from
     * the current [[DisjointSets]].
     */
-  def toSets: (Map[T, Set[T]], DisjointSets[T]) =
-    ((Map.empty[T, Set[T]], this) /: entries.keys) {
-      case ((acc, dsets), v) =>
-        val (Some(label), newSt) = dsets.find(v)
+  def toSets: (DisjointSets[T], Map[T, Set[T]]) =
+    ((this, Map.empty[T, Set[T]]) /: entries.keys) {
+      case ((dsets, acc), v) =>
+        val (newSt, Some(label)) = dsets.find(v)
         val updatedSet = acc.getOrElse(label, Set()) + v
-        (acc + (label -> updatedSet), newSt)
+        (newSt, acc + (label -> updatedSet))
     }
 
   private def flattenBranch(label: T, toPropagate: List[(T,Entry[T])] = Nil): DisjointSets[T] =

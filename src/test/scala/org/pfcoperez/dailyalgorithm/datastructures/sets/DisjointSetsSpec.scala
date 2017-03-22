@@ -11,11 +11,11 @@ class DisjointSetsSpec extends FlatSpec with Matchers {
 
     // Use [[DisjointSets]] to put together numbers ending in the same digit
     val classifiedNumbers = (DisjointSets(numbers:_*) /: numbers) { (dsets, v) =>
-      dsets.union(v, v%10)._2
+      dsets.union(v, v%10)._1
     }
 
     val groupByClassification = numbers.groupBy(_ % 10).mapValues(_.toSet)
-    val (disjointSetsClassification, _) = classifiedNumbers.toSets
+    val (_, disjointSetsClassification) = classifiedNumbers.toSets
 
 
     disjointSetsClassification should contain theSameElementsAs groupByClassification
