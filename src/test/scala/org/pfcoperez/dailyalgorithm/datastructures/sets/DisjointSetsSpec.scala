@@ -1,4 +1,4 @@
-package org.pfcoperez.dailyalgorithm.database
+package org.pfcoperez.dailyalgorithm.datastructures.sets
 
 import org.pfcoperez.dailyalgorithm.datastructures.sets.DisjointSets
 import org.scalatest.{FlatSpec, Matchers}
