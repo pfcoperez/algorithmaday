@@ -25,14 +25,20 @@ class MonadicDisjointSetsSpec extends FlatSpec with Matchers {
       allFromTwo <- findState(2)
       allFromThree <- findState(3)
       allFromFour <- findState(4)
-    } yield (
-      oneAndTwo,
-      threeAndFour,
-      allFromOne,
-      allFromTwo,
-      allFromThree,
-      allFromFour
-    )
+    } yield (oneAndTwo, threeAndFour, allFromOne, allFromTwo, allFromThree, allFromFour)
+
+    /* 
+     val state0 = DisjointSets(1,2,3,4)
+     val (state1, _) = state0.union(1,2)
+     val (state2, oneAndTwo) = state1.find(2)
+     val (state3, _) = state2.union(3,4)
+     val (state4, threeAndFour) = state3.find(3)
+     val (state5, _) = state4.union(2,3)
+     val (state6, allFromOne) = state5.find(1)
+     val (state7, allFromTwo) = state5.find(2)
+     val (state8, allFromThree) = state5.find(3)
+     val (state9, allFromFour) = state5.find(4)
+     */
 
     val (
       Some(a),
