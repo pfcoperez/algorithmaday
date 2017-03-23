@@ -13,4 +13,8 @@ object MonadicDisjointSets {
     disjointSets => disjointSets.union(a, b)
   )
 
+  def toSets[T] = State[DisjointSets[T], Map[T, Set[T]]](
+    disjointSets => disjointSets.toSets
+  )
+  
 }
