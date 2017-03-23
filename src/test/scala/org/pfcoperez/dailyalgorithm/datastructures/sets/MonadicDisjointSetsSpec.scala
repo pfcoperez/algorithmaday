@@ -6,26 +6,47 @@ import cats._
 
 class MonadicDisjointSetsSpec extends FlatSpec with Matchers {
 
-  "A DisjointSets sets set" should "allow being used using State Monad" in {
+  "Operations at MonadicDisjointSets object" should "offer a monadic state interface for DisjointSets" in {
 
     import MonadicDisjointSets._
 
+    /**
+      *  Using the "for" notation to seamlessly handle
+      *  state propagation after each operation.
+      * 
+      **/
     val operations = for {
       _ <- unionState(1,2)
-      a <- findState(2)
+      oneAndTwo <- findState(2)
       _ <- unionState(3,4)
-      b <- findState(3)
+      threeAndFour <- findState(3)
       _ <- unionState(2,3)
-      c <- findState(1)
-      d <- findState(2)
-      e <- findState(3)
-      f <- findState(4)
-    } yield (a,b,c,d,e,f)
+      allFromOne <- findState(1)
+      allFromTwo <- findState(2)
+      allFromThree <- findState(3)
+      allFromFour <- findState(4)
+    } yield (
+      oneAndTwo,
+      threeAndFour,
+      allFromOne,
+      allFromTwo,
+      allFromThree,
+      allFromFour
+    )
 
-    //val Eval((a, b, c, d, e, f)) = operations.runA(DisjointSets(1,2,3,4))
+    val (
+      Some(a),
+      Some(b),
+      Some(c),
+      Some(d),
+      Some(e),
+      Some(f)
+    ) = operations.runA(DisjointSets(1,2,3,4)).value
 
-    //a should not equal (b)
-
+    a should not equal (b)
+    c shouldBe d
+    d shouldBe e
+    e shouldBe f
 
   }
 
