@@ -10,8 +10,8 @@ trait ConnectedComponentsOps {
 object RegularSetsConnectedComponentsOps extends ConnectedComponentsOps {
 
   def connectedNodes[T](nodes: Set[T], archs: Seq[(T, T)]): Seq[Set[T]] = {
-    val g = (nodes.toSeq.map(n => n -> List.empty[T]).toMap /: archs) {
-      case (prevG, (from, to)) => prevG + (from -> (to::prevG(from)))
+    val g: Map[T, List[T]] = (nodes.toSeq.map(n => n -> List.empty[T]).toMap /: archs) {
+      case (prevG, (from, to)) => prevG + (from -> (to::prevG(from))) + (to -> (from::prevG(to)))
     }
 
     def dfs(
@@ -28,14 +28,14 @@ object RegularSetsConnectedComponentsOps extends ConnectedComponentsOps {
             val updatedPartition: List[Set[T]] = {
               val currentPart::prevParts = partition
               if(currentPart contains current) (currentPart ++ children)::prevParts
-              else Set.empty[T]::partition
+              else (current::children).toSet::partition
             }
             dfs(children:::remaining, updatedPartition, visited + current)
           }
       }
 
     if(nodes.isEmpty) Seq()
-    else dfs(nodes.head::Nil, Set(nodes.head)::Nil, Set())
+    else dfs(nodes.toList, Set(nodes.head)::Nil, Set())
 
   }
 
