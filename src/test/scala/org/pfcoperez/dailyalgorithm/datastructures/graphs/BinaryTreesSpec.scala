@@ -46,4 +46,16 @@ class BinaryTreesSpec extends FlatSpec with Matchers {
 
   }
 
+  it should "be able to be zipped with each node height" in {
+    val withHeights = zipWithHeight(btree)
+    toList(withHeights) shouldBe List(
+      0 -> 1,
+      1 -> 2,
+      2 -> 3,
+      3 -> 4,
+      5 -> 2,
+      6 -> 1
+    )
+  }
+
 }

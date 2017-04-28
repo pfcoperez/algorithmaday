@@ -327,6 +327,7 @@ object Graphs {
       def insert[T : Ordering](btree: BinaryTree[T])(v: T): BinaryTree[T]
       def delete[T: Ordering](btree: BinaryTree[T])(v: T): BinaryTree[T]
       def height[T](binaryTree: BinaryTree[T], limit: Option[Int] = None): Int
+      def zipWithHeight[T](binaryTree: BinaryTree[T]): BinaryTree[(T, Int)]
     }
 
     object RawBinaryTree extends BinaryTreeOps {
@@ -424,6 +425,30 @@ object Graphs {
               Node(left, nodeval, delete(right)(v))
         }
 
+      /**
+        * Create a new binary tree by combining each node value
+        * with its heigth in the tree.
+        *
+        * O(n), n=number of nodes
+        *
+        * @param binaryTree Source binary tree
+        * @return New binary tree containing the same values paired
+        *         with each node height.
+        */
+      override def zipWithHeight[T](binaryTree: BinaryTree[T]): BinaryTree[(T, Int)] =
+        binaryTree match {
+          case Node(left, v, right) =>
+            val newChildren @ Seq(newLeft, newRight) = Seq(left, right) map zipWithHeight
+            val h = {
+              newChildren map {
+                case Empty => 1
+                case Node(_, (_, h), _) => h+1
+              }
+            }.max
+            Node(newLeft, v -> h, newRight)
+          case _ => Empty
+        }
+
     }
 
     object BalancedBinaryTree extends BinaryTreeOps {
@@ -495,6 +520,8 @@ object Graphs {
 
       override def delete[T: Ordering](btree: BinaryTree[T])(v: T): BinaryTree[T] = ???
 
+      override def zipWithHeight[T](binaryTree: BinaryTree[T]): BinaryTree[(T, Int)] =
+        RawBinaryTree.zipWithHeight(binaryTree)
     }
 
   }
