@@ -352,6 +352,44 @@ object Graphs {
           case _ => Empty
         }
 
+      def map[T, S](btree: BinaryTree[T])(f: T => S): BinaryTree[S] = btree match {
+        case Node(left, v, right) => Node(map(left)(f), f(v), map(right)(f))
+        case _ => Empty
+      }
+
+      /**
+        * Merge two binary trees. If they are balanced, the resulting tree
+        * will be balanced too.
+        *
+        * O(n), n=number of nodes
+        *
+        * @param a Binary tree
+        * @param b Binary tree
+        * @return Merged binary tree keeping balance if both input trees
+        *         were balanced.
+        */
+      def merge[T](a: BinaryTree[T], b: BinaryTree[T])(implicit ord: Ordering[T]): BinaryTree[T] = (a, b) match {
+
+        case (Empty, _) => b
+        case (_, Empty) => a
+        case _ =>
+
+          val sources @ Seq(la, lb) = Seq(a, b) map toList[T]
+
+          val maxValue = (sources map (_.max)) max
+
+          def consumeAndMerge(la: List[T], lb: List[T])(acc: BinaryTree[T]): BinaryTree[T] = {
+            Seq(la, lb).sortBy(_.headOption.getOrElse(maxValue)) match {
+              case Seq(av::arem, b) =>
+                consumeAndMerge(arem, b)(insert(acc)(av))
+              case _ => acc
+            }
+          }
+
+          consumeAndMerge(la, lb)(Empty)
+
+        }
+
     }
 
     object RawBinaryTree extends BinaryTreeOps {

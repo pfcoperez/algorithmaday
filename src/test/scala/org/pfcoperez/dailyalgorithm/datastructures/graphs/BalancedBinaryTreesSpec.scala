@@ -7,6 +7,30 @@ class BalancedBinaryTreesSpec extends FlatSpec with Matchers {
 
   import BalancedBinaryTree._
 
+  def generateBalancedTree[T : Ordering](
+                                          input: Seq[T],
+                                          checkBalanceAtEachInsert: Boolean = false): BinaryTree[T] =
+    ((Empty: BinaryTree[T]) /: input) {
+      (tree, element) =>
+        val newTree = insert(tree)(element)
+        if(checkBalanceAtEachInsert)
+          checkBalance(newTree) // Balance is tested after each insert
+        newTree
+    }
+
+  def checkBinaryTreeInvariant[T](btree: BinaryTree[T])(implicit ord: Ordering[T]): Unit = {
+    import ord.mkOrderingOps
+
+    def checkInvariant(btree: BinaryTree[T])(invariant: T => Boolean): Boolean = btree match {
+      case Node(left, v, right) =>
+        invariant(v) && checkInvariant(left)(_ <= v) && checkInvariant(right)(_ > v)
+      case _ => true
+    }
+
+    checkInvariant(btree)(_ => true) shouldBe true
+
+  }
+
   def checkBalance[T](binaryTree: BinaryTree[T]): Unit = {
 
     def siblingsHeights[T](btree: BinaryTree[T]): List[(Int, Int)] = btree match {
@@ -25,14 +49,11 @@ class BalancedBinaryTreesSpec extends FlatSpec with Matchers {
 
     val input = 1 to 1000
 
-    val btree: BinaryTree[Int] = ((Empty: BinaryTree[Int]) /: input) {
-      (tree, element) =>
-        val newTree = insert(tree)(element)
-        checkBalance(newTree) // Balance is tested after each insert
-        newTree
-    }
+    val btree = generateBalancedTree(input, true)
 
     checkBalance(btree)
+
+    checkBinaryTreeInvariant(btree)
 
     toList(btree) shouldBe (input.toList.sorted)
 
@@ -42,16 +63,31 @@ class BalancedBinaryTreesSpec extends FlatSpec with Matchers {
 
     val input = 1000 to 1 by -1
 
-    val btree: BinaryTree[Int] = ((Empty: BinaryTree[Int]) /: input) {
-      (tree, element) =>
-        val newTree = insert(tree)(element)
-        checkBalance(newTree) // Balance is tested after each insert
-        newTree
-    }
+    val btree = generateBalancedTree(input, true)
 
     checkBalance(btree)
 
+    checkBinaryTreeInvariant(btree)
+
     toList(btree) shouldBe (input.toList.sorted)
+
+  }
+
+  it should "keep balance when merge with another balanced binary tree" in {
+
+    val a = generateBalancedTree(1 to 72)
+    val b = generateBalancedTree(123 to 73 by -1)
+
+    checkBalance(a)
+    checkBalance(b)
+
+    val possibleBlends = Seq(merge(a,b), merge(b,a))
+
+    possibleBlends foreach { combinedBtree =>
+      checkBinaryTreeInvariant(combinedBtree)
+      checkBalance(combinedBtree)
+      toList(combinedBtree) should contain theSameElementsAs (toList(a) ++ toList(b))
+    }
 
   }
 
