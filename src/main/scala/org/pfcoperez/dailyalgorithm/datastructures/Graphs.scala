@@ -323,10 +323,20 @@ object Graphs {
       def min[T : Ordering](btree: BinaryTree[T]): Option[T]
       def max[T : Ordering](btree: BinaryTree[T]): Option[T]
       def findFirst[T : Ordering](btree: BinaryTree[T])(v: T): BinaryTree[T]
-      def toList[T : Ordering](btree: BinaryTree[T]): List[T]
       def insert[T : Ordering](btree: BinaryTree[T])(v: T): BinaryTree[T]
       def delete[T: Ordering](btree: BinaryTree[T])(v: T): BinaryTree[T]
       def height[T](binaryTree: BinaryTree[T], limit: Option[Int] = None): Int
+
+      def toList[T : Ordering](btree: BinaryTree[T]): List[T] = {
+
+        def toList(btree: BinaryTree[T])(acc: List[T]): List[T] = btree match {
+          case Node(left, v, right) => toList(left)(v::toList(right)(acc))
+          case _ => acc
+        }
+
+        toList(btree)(Nil)
+
+      }
 
       /**
         * Create a new binary tree by combining each node value
@@ -360,8 +370,6 @@ object Graphs {
       /**
         * Merge two binary trees. If they are balanced, the resulting tree
         * will be balanced too.
-        *
-        * O(n), n=number of nodes
         *
         * @param a Binary tree
         * @param b Binary tree
@@ -454,11 +462,6 @@ object Graphs {
           else Node(left, nodeval, insertNode(right)(node))
       }
 
-      def toList[T : Ordering](btree: BinaryTree[T]): List[T] = btree match {
-        case Node(left, v, right) => toList(left) ++ List(v) ++ toList(right)
-        case _ => Nil
-      }
-
       // O(h), h = tree height
       def delete[T](btree: BinaryTree[T])(v: T)(
         implicit order: Ordering[T]
@@ -495,8 +498,6 @@ object Graphs {
 
       def findFirst[T: Ordering](btree: BinaryTree[T])(v: T): BinaryTree[T] =
         RawBinaryTree.findFirst(btree)(v)
-
-      def toList[T: Ordering](btree: BinaryTree[T]): List[T] = RawBinaryTree.toList(btree)
 
       def height[T](binaryTree: BinaryTree[T], limit: Option[Int] = None): Int =
         RawBinaryTree.height(binaryTree, limit)
