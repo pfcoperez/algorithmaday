@@ -530,7 +530,7 @@ object Graphs {
             val (updatedBranch, heightTrack) = balancedInsert(targetBranch)
             val h2propagate = heightTrack flatMap { h =>
               val othersh = height(secondBranch, Some(h+2))
-              if(h - othersh > 1) None
+              if(h - othersh >= 1) None
               else Some(math.max(h, othersh)+1)
             }
             val newNode = nodeBuilder(updatedBranch, secondBranch)

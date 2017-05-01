@@ -40,7 +40,7 @@ class BalancedBinaryTreesSpec extends FlatSpec with Matchers {
     }
 
     siblingsHeights(binaryTree) foreach { case (lh, rh) =>
-      math.abs(lh-rh) should be <= 2
+      math.abs(lh-rh) should be <= 1
     }
 
   }
