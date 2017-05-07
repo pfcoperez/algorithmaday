@@ -3,8 +3,6 @@ package org.pfcoperez.dailyalgorithm.numericmethods.random
 import org.pfcoperez.dailyalgorithm.numericmethods.random.DistributionRandomGenerator.DensityFunction
 import org.pfcoperez.dailyalgorithm.numericmethods.random.impl.DoubleRandomGen
 
-import scala.annotation.tailrec
-
 
 class DistributionRandomGenerator private (
                                             private val randomDoubleGen: RandomGenerator[Double],
@@ -73,6 +71,18 @@ object DistributionRandomGenerator {
     def uniform(from: Double, to: Double): DensityFunction =
       DensityFunction(from, to)(_ => 1.0/(from - to))
 
+
+    def normal(mean: Double, variance: Double)(from: Double, to: Double): DensityFunction = {
+      import math.{sqrt, exp, Pi}
+
+      val mainFactor = 1.0/sqrt(2.0*Pi*variance)
+      val expDem = -2.0*variance
+
+      DensityFunction(from, to) { x =>
+        val desv = x - mean
+        mainFactor*exp(desv*desv/expDem)
+      }
+    }
 
 
   }
