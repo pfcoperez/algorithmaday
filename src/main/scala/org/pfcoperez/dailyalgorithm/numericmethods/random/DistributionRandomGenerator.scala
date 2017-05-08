@@ -68,12 +68,16 @@ object DistributionRandomGenerator {
 
   object DensityFunctions {
 
-    def uniform(from: Double, to: Double): DensityFunction =
-      DensityFunction(from, to)(_ => 1.0/(from - to))
+    def uniform(range: (Double, Double)): DensityFunction = {
+      val (from, to) = range
+      DensityFunction(range)(_ => 1.0/(from - to))
+    }
 
 
-    def normal(mean: Double, variance: Double)(from: Double, to: Double): DensityFunction = {
+    def normal(mean: Double, variance: Double)(range: (Double, Double)): DensityFunction = {
       import math.{sqrt, exp, Pi}
+
+      val (from, to) = range
 
       val mainFactor = 1.0/sqrt(2.0*Pi*variance)
       val expDem = -2.0*variance
