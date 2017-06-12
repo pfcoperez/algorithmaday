@@ -104,4 +104,14 @@ object Combinatorics {
         Applicative[List].ap(acc.map((right: List[T]) => (x: T) => x :: right))(col)
     }
 
+  /**
+    * Cartesian product of the elements of a sequence of collections, using
+    * Applicative "ap" operation.
+    *
+    * O(N1*N2*...*NM), Ni = Each collection size
+    *
+    */
+  def improvedCartesianProductWithCats[T](collections: List[T]*): List[List[T]] =
+      collections.toList.sequence
+
 }
