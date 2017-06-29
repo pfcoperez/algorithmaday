@@ -439,16 +439,22 @@ object Graphs {
         hrec(binaryTree, 0)
       }
 
+      import cats.Eval
+
       // O(h), h = tree height
       def insert[T](btree: BinaryTree[T])(v: T)(
         implicit order: Ordering[T]
-      ): BinaryTree[T] = btree match {
-        case Empty => Node(Empty, v, Empty)
-        case node @ Node(left, nodeval, right) =>
-          import order.mkOrderingOps
-          if(nodeval == v) node
-          else if(v < nodeval) Node(insert(left)(v), nodeval, right)
-          else Node(left, nodeval, insert(right)(v))
+      ): BinaryTree[T] = {
+        def insert(btree: BinaryTree[T])(v: T): Eval[BinaryTree[T]] =
+          btree match {
+            case Empty => Eval.now(Node(Empty, v, Empty))
+            case node @ Node(left, nodeval, right) =>
+              import order.mkOrderingOps
+              if(nodeval == v) Eval.now(node)
+              else if(v < nodeval) Eval.defer(insert(left)(v)).map(Node(_, nodeval, right))
+              else Eval.defer(insert(right)(v)).map(Node(left, nodeval, _))
+          }
+        insert(btree)(v).value
       }
 
       // O(h), h = tree height
@@ -599,3 +605,6 @@ object Graphs {
 
 
 }
+
+
+
