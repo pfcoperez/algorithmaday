@@ -42,14 +42,14 @@ object Algebra {
 
         case class DivideAndConquer(fallback: MultiplicationMethod) extends MultiplicationMethod {
 
-          protected def mergeResults[T: ClassTag](parts: Matrix[Matrix[T]]): Matrix[T] = {
+          def mergeResults[T: ClassTag](parts: Matrix[Matrix[T]]): Matrix[T] = {
             val (unitN, unitM) = size(parts.head.head)
             positionalValues(unitN * parts.length, unitM * parts.head.length) {
               (i, j) => parts(i / unitN)(j / unitM)(i % unitN)(j % unitM)
             }
           }
 
-          protected def splitInput[T: ClassTag](X: Matrix[T]): Matrix[Matrix[T]] = {
+          def splitInput[T: ClassTag](X: Matrix[T]): Matrix[Matrix[T]] = {
             val (n, m) = size(X)
             positionalValues(2, 2) {
               (ui, uj) => positionalValues(n / 2, m / 2) {
@@ -72,6 +72,42 @@ object Algebra {
                     (zeros(n / 2, m / 2) /: (0 until 2))((sum,k) => sum + multiply(splittedA(ui)(k),splittedB(k)(uj)))
                 }
               }
+            } else fallback.multiply(A, B)
+          }
+
+        }
+
+        case class StrassenDividideAndConquer(fallback: MultiplicationMethod) extends MultiplicationMethod {
+
+          // Let's use regular D&C mutiplication method's auxiliary operations.
+          private val divideAndConquerMethod = DivideAndConquer(fallback)
+          import divideAndConquerMethod.{splitInput, mergeResults}
+
+          def multiply[T: Numeric : ClassTag](A: Matrix[T], B: Matrix[T]): Matrix[T] = {
+            val (n, m) = (size(A)._1, size(B)._2)
+            if (n % 2 == 0 && m % 2 == 0) {
+
+              val aQs = splitInput(A)
+              val bQs = splitInput(B)
+
+              val Array(a11, a12, a21, a22) = aQs.flatten
+              val Array(b11, b12, b21, b22) = bQs.flatten
+
+              val m1 = multiply(a11 + a22, b11 + b22)
+              val m2 = multiply(a21 + a22, b11)
+              val m3 = multiply(a11, b12 - b22)
+              val m4 = multiply(a22, b21 - b11)
+              val m5 = multiply(a11 + a12, b22)
+              val m6 = multiply(a21 - a11, b11 + b12)
+              val m7 = multiply(a12 - a22, b21 + b22)
+
+              mergeResults {
+                Array(
+                  Array(m1+m4-m5+m7, m3+m5),
+                  Array(m2+m4, m1-m2+m3+m6)
+                )
+              }
+
             } else fallback.multiply(A, B)
           }
 
@@ -160,13 +196,20 @@ object Algebra {
     implicit class NumericMatrix[T: Numeric : ClassTag](m: Matrix[T]) {
 
       import org.pfcoperez.dailyalgorithm.Algebra.Matrix.NumericMatrix.{MultiplicationMethod, DeterminantMethod}
+      val numericTypeclass = implicitly[Numeric[T]]
+      import numericTypeclass.mkNumericOps
 
       def *(that: Matrix[T])(implicit multiplicationMethod: MultiplicationMethod): Matrix[T] =
         multiplicationMethod.multiply(m, that)
 
       def +(that: Matrix[T]): Matrix[T] = {
         val (nrows, ncols) = size(that)
-        positionalValues(nrows, ncols)((i, j) => implicitly[Numeric[T]].plus(m(i)(j), that(i)(j)))
+        positionalValues(nrows, ncols)((i, j) => m(i)(j) + that(i)(j))
+      }
+
+      def -(that: Matrix[T]): Matrix[T] = {
+        val (nrows, ncols) = size(that)
+        positionalValues(nrows, ncols)((i, j) => m(i)(j) - that(i)(j))
       }
 
       def det(implicit determinantMethod: DeterminantMethod): Double =

@@ -1,6 +1,6 @@
 package org.pfcoperez.dailyalgorithm.algebra
 
-import org.pfcoperez.dailyalgorithm.Algebra.Matrix.NumericMatrix.MultiplicationMethods.{DivideAndConquer, NaiveMultiplicationMethod}
+import org.pfcoperez.dailyalgorithm.Algebra.Matrix.NumericMatrix.MultiplicationMethods.{DivideAndConquer, StrassenDividideAndConquer, NaiveMultiplicationMethod}
 import org.pfcoperez.dailyalgorithm.Algebra.Matrix._
 import org.scalatest.{Matchers, WordSpec}
 
@@ -17,36 +17,45 @@ class MatrixMultiplicationSpec extends WordSpec with Matchers {
 
   import MatrixMultiplicationSpec._
 
-  "A recursive D&Q multiplication algorithm" should {
+  val multiplicationMethods = Seq(
+    "Divide and conquer" -> DivideAndConquer(NaiveMultiplicationMethod),
+    "Strassen algorithm" -> StrassenDividideAndConquer(NaiveMultiplicationMethod)
+  )
 
-    implicit val multiplicationMethod = DivideAndConquer(NaiveMultiplicationMethod)
+  multiplicationMethods foreach { case (name, method) =>
 
-    "be able to multiply square matrices by identities" in {
+    implicit val multiplicationMethod = method
 
-      (5 to 7) foreach { p => //matrix side size = 2^p
+    s"$name multiplication algorithm" should {
 
-        val l = math.pow(2, p).toInt
+      "be able to multiply square matrices by identities" in {
 
-        val randomMatrix = randomIntMatrix(l,l)
+        (5 to 7) foreach { p => //matrix side size = 2^p
 
-        (randomMatrix * identity(l,l)).deep should equal(randomMatrix)
+          val l = math.pow(2, p).toInt
+
+          val randomMatrix = randomIntMatrix(l,l)
+
+          (randomMatrix * identity(l,l)).deep should equal(randomMatrix)
+
+
+        }
 
 
       }
 
+      "be able to multiply arbitrary square matrices falling back to default method when needed" in {
 
-    }
+        for(l <- 1 to 53) {
 
-    "be able to multiply arbitrary square matrices falling back to default method when needed" in {
+          val A = randomIntMatrix(l,l)
+          val B = randomIntMatrix(l,l)
 
-     for(l <- 1 to 53) {
+          (A*B).deep should equal(A.*(B)(NaiveMultiplicationMethod).deep)
 
-       val A = randomIntMatrix(l,l)
-       val B = randomIntMatrix(l,l)
+        }
 
-       (A*B).deep should equal(A.*(B)(NaiveMultiplicationMethod).deep)
-
-     }
+      }
 
     }
 
