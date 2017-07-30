@@ -71,7 +71,7 @@ object Sequences {
   /**
     * Checks whether a sequence if a subsequence of another
     *
-    * O(n), n = size of s
+    * O(n*m), n = size of s, m = size of ss
     */
   def isSubseq[T](s: Seq[T])(ss: Seq[T]): Boolean =
     (ss /: s) {
@@ -131,5 +131,43 @@ object Sequences {
   }
 
   def rotateLeft[T](v: Vector[T])(idx: Int): Vector[T] = { val (a,b) = v.splitAt(idx); b ++ a }
+
+
+  /**
+    * 
+    * Knuth-Morris-Pratt fast sequence matching.
+    * O(n), n = Size of the corpus where the target word is to be seached in.
+    * 
+    */
+  def kmpSearch[T](corpus: Seq[T], word: Seq[T]): Seq[Int] = {
+
+    val l = word.size
+    val wordVector = word.toVector
+
+    def findOffset(v: T, offset: Int, prefixTable: Vector[Int]): Int =
+      if(offset > -1 && v != wordVector(offset+1)) findOffset(v, prefixTable(offset), prefixTable)
+      else offset
+
+    val (_, prefixTable) =
+      ((-1, Vector.fill(l)(-1)) /: (word.view.zipWithIndex).tail) { case ((k, p) , (v, q)) =>
+        val newK = {
+          val kv = findOffset(v, k, p)
+          kv + { if(wordVector(kv+1) == v) 1 else 0 }
+        }
+        (newK, p.updated(q, newK))
+      }
+   
+    val (_, results) = ((-1, List.empty[Int]) /:corpus.view.zipWithIndex) {
+      case ((q, results), (v, idx)) =>
+        val newQ = {
+          val qv = findOffset(v, q, prefixTable)
+          qv + { if(wordVector(qv+1) == v) 1 else 0 } 
+        }
+        if(newQ == l-1) (prefixTable(newQ), (idx-l+1)::results)
+        else (newQ, results)
+    }
+    
+    results.reverse
+  }
 
 }
