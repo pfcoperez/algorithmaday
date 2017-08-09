@@ -1,12 +1,11 @@
 package org.pfcoperez.dailyalgorithm.combinatorics
 
 import org.scalatest.prop.Checkers
-import org.scalatest.{FlatSpec, Matchers}
-
+import org.scalatest.{ FlatSpec, Matchers }
 
 class CartesianProductSpec extends FlatSpec with Checkers {
 
-  import org.pfcoperez.dailyalgorithm.Combinatorics.{cartesianProduct, improvedCartesianProductWithCats}
+  import org.pfcoperez.dailyalgorithm.Combinatorics.{ cartesianProduct, improvedCartesianProductWithCats }
 
   import org.scalacheck.Gen
   import org.scalacheck.Prop.forAll
@@ -17,7 +16,7 @@ class CartesianProductSpec extends FlatSpec with Checkers {
 
     check {
       forAll(casesGenerator) { collections =>
-        improvedCartesianProductWithCats(collections:_*).toSet ==
+        improvedCartesianProductWithCats(collections: _*).toSet ==
           cartesianProduct(collections).toSet
       }
     }

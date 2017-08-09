@@ -1,7 +1,7 @@
 package org.pfcoperez.algorithmaday.applications
 
 import org.scalacheck.Gen
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{ FlatSpec, Matchers }
 
 class ConnectedComponentsSpec extends FlatSpec with Matchers {
 
@@ -19,14 +19,14 @@ class ConnectedComponentsSpec extends FlatSpec with Matchers {
 
     val nNodes: Int = 1000
     val archsRatio: Double = 0.8
-    val nArchs: Int = (nNodes*archsRatio) toInt
+    val nArchs: Int = (nNodes * archsRatio) toInt
 
     val (nodes, archs) = generateForest(nNodes, nArchs)
 
     val traditionalCCs = RegularSetsConnectedComponentsOps.connectedNodes(nodes, archs).toSet
     val disjointsetsCCs = DisjointSetsConnectedComponentsOps.connectedNodes(nodes, archs).toSet
 
-    traditionalCCs should equal (disjointsetsCCs)
+    traditionalCCs should equal(disjointsetsCCs)
 
   }
 

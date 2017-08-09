@@ -25,20 +25,20 @@ object DynamicProgramming {
   } get target
 
   /**
-    * Given a sequence, find all its monotonic sub-sequences
-    *
-    * O(n^2), n = Number of elements
-    *
-    * @param s Source sequence.
-    * @param ordEv Ordering type class evidence.
-    * @tparam T
-    * @return All solutions: Sub-sequences of maximum length
-    *
-    * Example of use:
-    *
-    * `longestMonotonicSubseqs(Seq(1,2,0,1,-1,4,9,8,7,1,2))`
-    *
-    */
+   * Given a sequence, find all its monotonic sub-sequences
+   *
+   * O(n^2), n = Number of elements
+   *
+   * @param s Source sequence.
+   * @param ordEv Ordering type class evidence.
+   * @tparam T
+   * @return All solutions: Sub-sequences of maximum length
+   *
+   * Example of use:
+   *
+   * `longestMonotonicSubseqs(Seq(1,2,0,1,-1,4,9,8,7,1,2))`
+   *
+   */
   def longestMonotonicSubseqs[T](s: Seq[T])(implicit ordEv: Ordering[T]): Seq[Seq[T]] =
     s.headOption map { _ =>
       import ordEv.mkOrderingOps
@@ -55,16 +55,16 @@ object DynamicProgramming {
           val vi = sAsVector(i)
           val prevIdx = (0 until i) maxBy { j =>
             val vj = sAsVector(j)
-            if(vj > vi) Int.MinValue else {
+            if (vj > vi) Int.MinValue else {
               val (jBenefit, _) = dpTable(j)
-              jBenefit+1
+              jBenefit + 1
             }
           }
           dpTable :+ {
-            if(sAsVector(prevIdx) > vi) (1, i)
+            if (sAsVector(prevIdx) > vi) (1, i)
             else {
               val (prevBenefit, _) = dpTable(prevIdx)
-              (prevBenefit+1, prevIdx)
+              (prevBenefit + 1, prevIdx)
             }
           }
       }
@@ -79,8 +79,8 @@ object DynamicProgramming {
       def composeSolution(lastIndex: Int, acc: List[T] = Nil): List[T] = {
         val (_, prevIdx) = dpTable(lastIndex)
         val v = sAsVector(lastIndex)
-        if(prevIdx == lastIndex) v::acc
-        else composeSolution(prevIdx, v::acc)
+        if (prevIdx == lastIndex) v :: acc
+        else composeSolution(prevIdx, v :: acc)
       }
 
       (0 until l) collect {

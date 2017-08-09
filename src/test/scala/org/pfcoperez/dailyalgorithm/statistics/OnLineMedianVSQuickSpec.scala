@@ -2,7 +2,7 @@ package org.pfcoperez.dailyalgorithm.statistics
 
 import org.pfcoperez.dailyalgorithm.Statistics.OnLineMedian.PriorityQueue
 import org.pfcoperez.dailyalgorithm.Statistics._
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{ FlatSpec, Matchers }
 import org.scalacheck.Gen._
 
 class OnLineMedianVSQuickSpec extends FlatSpec with Matchers {

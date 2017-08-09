@@ -1,7 +1,6 @@
 package org.pfcoperez.dailyalgorithm.applications
 
-import org.scalatest.{FlatSpec, Matchers, Inside}
-
+import org.scalatest.{ FlatSpec, Matchers, Inside }
 
 class TopologicalSortSpec extends FlatSpec with Matchers with Inside {
   import TopologicalSort._
@@ -18,8 +17,7 @@ class TopologicalSortSpec extends FlatSpec with Matchers with Inside {
       'G' -> Set('I'),
       'H' -> Set('J'),
       'I' -> Set('H'),
-      'J' -> Set()
-    )
+      'J' -> Set())
 
     inside(topologicalSort(dm)) {
       case Some(order) =>
@@ -42,8 +40,7 @@ class TopologicalSortSpec extends FlatSpec with Matchers with Inside {
     val dm: DependencyMatrix[Char] = Map(
       'A' -> Set('B'),
       'B' -> Set('C'),
-      'C' -> Set('A')
-    )
+      'C' -> Set('A'))
 
     topologicalSort(dm) shouldBe empty
 
@@ -57,8 +54,7 @@ class TopologicalSortSpec extends FlatSpec with Matchers with Inside {
       "Magnetic shields" -> Set("Quantum computing"),
       "Dark matter confinement" -> Set("Quantum computing"),
       "Safe cabins" -> Set("Magnetic shields"),
-      "Warp drive" -> Set("Dark matter confinement")
-    )
+      "Warp drive" -> Set("Dark matter confinement"))
 
     inside(topologicalSort(technologicalDependencies)) {
       case Some(plan) =>
@@ -71,10 +67,8 @@ class TopologicalSortSpec extends FlatSpec with Matchers with Inside {
         planIndexes("Dark matter confinement") should be < planIndexes("Warp drive")
         planIndexes("Magnetic shields") should be < planIndexes("Safe cabins")
 
-
     }
 
   }
-
 
 }

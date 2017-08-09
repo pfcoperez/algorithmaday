@@ -1,7 +1,6 @@
-package org.pfcoperez.dailyalgorithm.datastructures.graphs
+package org.pfcoperez.dailyalgorithm.datastructures.graphs.directed
 
-import org.pfcoperez.dailyalgorithm.datastructures.Graphs._
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{ FlatSpec, Matchers }
 
 class BidirectionalSearchSpec extends FlatSpec with Matchers {
 
@@ -20,22 +19,20 @@ class BidirectionalSearchSpec extends FlatSpec with Matchers {
     val pairsInTouch = Seq(
       A -> I,
       B -> H,
-      E -> E
-    )
+      E -> E)
 
     val unreachablePairs = Seq(
       E -> F,
       D -> C,
-      D -> I
-    )
+      D -> I)
 
-    pairsInTouch foreach  {
+    pairsInTouch foreach {
       case (from, to) =>
         atSameConnectedComponent(from, to) shouldBe true
         atSameConnectedComponent(to, from) shouldBe true
     }
 
-    unreachablePairs foreach  {
+    unreachablePairs foreach {
       case (from, to) =>
         println(from.value, to.value)
         atSameConnectedComponent(from, to) shouldBe false

@@ -1,45 +1,43 @@
 package org.pfcoperez.dailyalgorithm.applications
 
 import scala.collection.immutable.Queue
-import org.pfcoperez.dailyalgorithm.datastructures.Graphs.BinaryTrees._
+import org.pfcoperez.dailyalgorithm.datastructures.graphs.directed.trees.binary._
 
 object BFSAndApps extends App {
 
   /**
-    * Level in-order traversal: First last level, from left to right,...
-    * ... then second to last, from left to right, third to last ...
-    * up to first element.
-    *
-    * O(n)
-    *
-    */
+   * Level in-order traversal: First last level, from left to right,...
+   * ... then second to last, from left to right, third to last ...
+   * up to first element.
+   *
+   * O(n)
+   *
+   */
   def levelOrderTreeTraversal[T](tree: BinaryTree[T]): Seq[T] = {
     val res = bfsWithAccFunction(List.empty[T])(Queue(tree)) {
       (prev, level, v) =>
-        v::prev
-    } { (a,b) => (b,a) }
+        v :: prev
+    } { (a, b) => (b, a) }
     res
   }
 
   /**
-    * Breadth-First traversal with accumulation function.
-    * O(n), n = no elements
-    */
+   * Breadth-First traversal with accumulation function.
+   * O(n), n = no elements
+   */
   def bfsWithAccFunction[T, R](acc: R, h: Int = 0)(
-    toVisit: Queue[BinaryTree[T]]
-  )(update: (R, Int, T) => R)(
-                                inLevelOrder: (BinaryTree[T], BinaryTree[T]) => (BinaryTree[T], BinaryTree[T])
-                              ): R =
-    if(toVisit.isEmpty) acc
+    toVisit: Queue[BinaryTree[T]])(update: (R, Int, T) => R)(
+    inLevelOrder: (BinaryTree[T], BinaryTree[T]) => (BinaryTree[T], BinaryTree[T])): R =
+    if (toVisit.isEmpty) acc
     else {
       val (currentNode, remToVisit) = toVisit.dequeue
       val (newToVisit: Queue[BinaryTree[T]], newAcc) = currentNode match {
         case Node(left, v, right) =>
-          val (a,b) = inLevelOrder(left, right)
-          (remToVisit ++ Seq(a,b), update(acc, h, v))
+          val (a, b) = inLevelOrder(left, right)
+          (remToVisit ++ Seq(a, b), update(acc, h, v))
         case _ => remToVisit -> acc
       }
-      bfsWithAccFunction[T, R](newAcc, h+1)(newToVisit)(update)(inLevelOrder)
+      bfsWithAccFunction[T, R](newAcc, h + 1)(newToVisit)(update)(inLevelOrder)
     }
 
   val o = Node(Empty, 15, Empty)

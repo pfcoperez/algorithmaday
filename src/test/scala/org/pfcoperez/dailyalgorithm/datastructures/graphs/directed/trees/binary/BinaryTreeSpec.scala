@@ -1,11 +1,8 @@
-package org.pfcoperez.dailyalgorithm.datastructures.graphs
-
-import org.pfcoperez.dailyalgorithm.datastructures.Graphs.BinaryTrees._
+package org.pfcoperez.dailyalgorithm.datastructures.graphs.directed.trees.binary
 
 import org.scalatest._
 
-
-class BinaryTreesSpec extends FlatSpec with Matchers {
+class BinaryTreeSpec extends FlatSpec with Matchers {
 
   import RawBinaryTree._
 
@@ -15,10 +12,9 @@ class BinaryTreesSpec extends FlatSpec with Matchers {
     (tree, element) => insert(tree)(element)
   }
 
-
   "BinaryTrees" should "be able to find the elements on them inserted" in {
 
-    toList(btree) should be (input sorted)
+    toList(btree) should be(input sorted)
 
   }
 
@@ -34,14 +30,15 @@ class BinaryTreesSpec extends FlatSpec with Matchers {
     val orderedInput = input sorted
 
     val trees_deleted = input.scan(btree -> Set.empty) {
-      case ((tree: BinaryTree[Int @ unchecked], deleted: Set[Int @ unchecked]), toDelete: Int) =>
+      case ((tree: BinaryTree[Int @unchecked], deleted: Set[Int @unchecked]), toDelete: Int) =>
         val newTree = delete(tree)(toDelete)
         (newTree, deleted + toDelete)
     }
 
-    trees_deleted foreach { case (tree: BinaryTree[Int @ unchecked], deleted: Set[Int @ unchecked]) =>
-      val expected = orderedInput filterNot (deleted.contains)
-      toList(tree) should be (expected)
+    trees_deleted foreach {
+      case (tree: BinaryTree[Int @unchecked], deleted: Set[Int @unchecked]) =>
+        val expected = orderedInput filterNot (deleted.contains)
+        toList(tree) should be(expected)
     }
 
   }
@@ -54,8 +51,7 @@ class BinaryTreesSpec extends FlatSpec with Matchers {
       2 -> 3,
       3 -> 4,
       5 -> 2,
-      6 -> 1
-    )
+      6 -> 1)
   }
 
 }

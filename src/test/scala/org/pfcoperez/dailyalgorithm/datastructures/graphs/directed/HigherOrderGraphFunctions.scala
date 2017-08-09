@@ -1,9 +1,7 @@
-package org.pfcoperez.dailyalgorithm.datastructures.graphs
+package org.pfcoperez.dailyalgorithm.datastructures.graphs.directed
 
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.{ Matchers, WordSpec }
 import org.scalatest.Inspectors._
-
-import org.pfcoperez.dailyalgorithm.datastructures.Graphs._
 
 class HigherOrderGraphFunctions extends WordSpec with Matchers {
 
@@ -15,15 +13,15 @@ class HigherOrderGraphFunctions extends WordSpec with Matchers {
     "passed a weight modification function" should {
 
       "create a new graphs with updated weights" in {
-        val newGraph = map(G01)(identity, _*2)
+        val newGraph = map(G01)(identity, _ * 2)
         val newDijkstraDistances =
-          minDistancesDijkstra(newGraph.asInstanceOf[Node[Char, Int]])  map {
+          minDistancesDijkstra(newGraph.asInstanceOf[Node[Char, Int]]) map {
             case (k, v) => k.value -> v
           }
 
         forAll(newDijkstraDistances) {
           case (dest, newDistance) =>
-            dijkstraDistancesForG01(dest)*2 shouldEqual newDistance
+            dijkstraDistancesForG01(dest) * 2 shouldEqual newDistance
         }
 
       }
@@ -31,6 +29,5 @@ class HigherOrderGraphFunctions extends WordSpec with Matchers {
     }
 
   }
-
 
 }

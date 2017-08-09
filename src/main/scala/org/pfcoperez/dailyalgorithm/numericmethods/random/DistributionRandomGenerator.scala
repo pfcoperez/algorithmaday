@@ -3,22 +3,20 @@ package org.pfcoperez.dailyalgorithm.numericmethods.random
 import org.pfcoperez.dailyalgorithm.numericmethods.random.DistributionRandomGenerator.DensityFunction
 import org.pfcoperez.dailyalgorithm.numericmethods.random.impl.DoubleRandomGen
 
-
 class DistributionRandomGenerator private (
-                                            private val randomDoubleGen: RandomGenerator[Double],
-                                            val densityFunction: DensityFunction
-                                          ) extends RandomGenerator[Double] {
+  private val randomDoubleGen: RandomGenerator[Double],
+  val densityFunction: DensityFunction) extends RandomGenerator[Double] {
 
   final override def next: (DistributionRandomGenerator, Double) = {
 
     def normalize(x: Double): Double =
-      if(x < 0.0) normalize(-x)
-      else if(x > 1.0) normalize(x - x.floor)
+      if (x < 0.0) normalize(-x)
+      else if (x > 1.0) normalize(x - x.floor)
       else x
 
     def withinRange(x: Double, range: (Double, Double)): Double = {
       val (a, b) = range
-      a + normalize(x)*(b-a)
+      a + normalize(x) * (b - a)
     }
 
     val (nextDoubleGenA, rawX) = randomDoubleGen.next
@@ -32,11 +30,10 @@ class DistributionRandomGenerator private (
       case maxY if y >= 0.0 && y <= maxY => updatedGenerator -> x
     }
 
-    if(candidate.isDefined) candidate.get
+    if (candidate.isDefined) candidate.get
     else updatedGenerator.next
 
   }
-
 
 }
 
@@ -45,11 +42,10 @@ object DistributionRandomGenerator {
   import scala.runtime.AbstractPartialFunction
 
   case class DensityFunction(domain: (Double, Double))(
-    f: Double => Double
-  ) extends AbstractPartialFunction[Double, Double] {
+    f: Double => Double) extends AbstractPartialFunction[Double, Double] {
 
     override def applyOrElse[A1 <: Double, B1 >: Double](x: A1, default: (A1) => B1): B1 = {
-        if (isDefinedAt(x)) f(x) else default(x)
+      if (isDefinedAt(x)) f(x) else default(x)
     }
 
     override def isDefinedAt(x: Double): Boolean = {
@@ -70,24 +66,22 @@ object DistributionRandomGenerator {
 
     def uniform(range: (Double, Double)): DensityFunction = {
       val (from, to) = range
-      DensityFunction(range)(_ => 1.0/(from - to))
+      DensityFunction(range)(_ => 1.0 / (from - to))
     }
 
-
     def normal(mean: Double, variance: Double)(range: (Double, Double)): DensityFunction = {
-      import math.{sqrt, exp, Pi}
+      import math.{ sqrt, exp, Pi }
 
       val (from, to) = range
 
-      val mainFactor = 1.0/sqrt(2.0*Pi*variance)
-      val expDem = -2.0*variance
+      val mainFactor = 1.0 / sqrt(2.0 * Pi * variance)
+      val expDem = -2.0 * variance
 
       DensityFunction(from, to) { x =>
         val desv = x - mean
-        mainFactor*exp(desv*desv/expDem)
+        mainFactor * exp(desv * desv / expDem)
       }
     }
-
 
   }
 

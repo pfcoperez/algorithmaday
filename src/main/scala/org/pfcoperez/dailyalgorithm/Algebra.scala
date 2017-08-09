@@ -1,6 +1,5 @@
 package org.pfcoperez.dailyalgorithm
 
-
 import scala.reflect.ClassTag
 
 object Algebra {
@@ -11,13 +10,13 @@ object Algebra {
 
     implicit class PrintableMatrix[T](M: Matrix[T]) {
       override def toString: String =
-        (for(row <- M) yield (for(cell <- row) yield cell.toString).mkString(" ")) mkString "\n"
+        (for (row <- M) yield (for (cell <- row) yield cell.toString).mkString(" ")) mkString "\n"
     }
 
     object NumericMatrix {
 
       trait MultiplicationMethod {
-        def multiply[T: Numeric : ClassTag](A: Matrix[T], B: Matrix[T]): Matrix[T]
+        def multiply[T: Numeric: ClassTag](A: Matrix[T], B: Matrix[T]): Matrix[T]
       }
 
       object MultiplicationMethods {
@@ -25,17 +24,15 @@ object Algebra {
         object NaiveMultiplicationMethod extends MultiplicationMethod {
 
           /**
-            * O(n^3)
-            **/
-          override def multiply[T: Numeric : ClassTag](A: Matrix[T], B: Matrix[T]): Matrix[T] = {
+           * O(n^3)
+           */
+          override def multiply[T: Numeric: ClassTag](A: Matrix[T], B: Matrix[T]): Matrix[T] = {
             val numericEvidence: Numeric[T] = implicitly[Numeric[T]]
             (0 until A.length) map (i =>
               (0 until B.head.length).map(j =>
                 (numericEvidence.zero /: (0 until A.head.length)) {
                   (acc, k) => numericEvidence.plus(acc, numericEvidence.times(A(i)(k), B(k)(j)))
-                }
-              ) toArray
-            ) toArray
+                }) toArray) toArray
           }
 
         }
@@ -52,24 +49,25 @@ object Algebra {
           def splitInput[T: ClassTag](X: Matrix[T]): Matrix[Matrix[T]] = {
             val (n, m) = size(X)
             positionalValues(2, 2) {
-              (ui, uj) => positionalValues(n / 2, m / 2) {
-                (i, j) => X(ui * n / 2 + i)(uj * n / 2 + j)
-              }
+              (ui, uj) =>
+                positionalValues(n / 2, m / 2) {
+                  (i, j) => X(ui * n / 2 + i)(uj * n / 2 + j)
+                }
             }
           }
 
           /**
-            * O(l^2 Log l), l = n = m
-            * PRE: n = m
-            */
-          override def multiply[T: Numeric : ClassTag](A: Matrix[T], B: Matrix[T]): Matrix[T] = {
+           * O(l^2 Log l), l = n = m
+           * PRE: n = m
+           */
+          override def multiply[T: Numeric: ClassTag](A: Matrix[T], B: Matrix[T]): Matrix[T] = {
             val (n, m) = (size(A)._1, size(B)._2)
             if (n % 2 == 0 && m % 2 == 0) {
-              val List(splittedA, splittedB) = List(A,B).map(splitInput)
+              val List(splittedA, splittedB) = List(A, B).map(splitInput)
               mergeResults {
                 positionalValues(2, 2) {
                   (ui, uj) =>
-                    (zeros(n / 2, m / 2) /: (0 until 2))((sum,k) => sum + multiply(splittedA(ui)(k),splittedB(k)(uj)))
+                    (zeros(n / 2, m / 2) /: (0 until 2))((sum, k) => sum + multiply(splittedA(ui)(k), splittedB(k)(uj)))
                 }
               }
             } else fallback.multiply(A, B)
@@ -81,9 +79,9 @@ object Algebra {
 
           // Let's use regular D&C mutiplication method's auxiliary operations.
           private val divideAndConquerMethod = DivideAndConquer(fallback)
-          import divideAndConquerMethod.{splitInput, mergeResults}
+          import divideAndConquerMethod.{ splitInput, mergeResults }
 
-          def multiply[T: Numeric : ClassTag](A: Matrix[T], B: Matrix[T]): Matrix[T] = {
+          def multiply[T: Numeric: ClassTag](A: Matrix[T], B: Matrix[T]): Matrix[T] = {
             val (n, m) = (size(A)._1, size(B)._2)
             if (n % 2 == 0 && m % 2 == 0) {
 
@@ -103,9 +101,8 @@ object Algebra {
 
               mergeResults {
                 Array(
-                  Array(m1+m4-m5+m7, m3+m5),
-                  Array(m2+m4, m1-m2+m3+m6)
-                )
+                  Array(m1 + m4 - m5 + m7, m3 + m5),
+                  Array(m2 + m4, m1 - m2 + m3 + m6))
               }
 
             } else fallback.multiply(A, B)
@@ -116,7 +113,7 @@ object Algebra {
       }
 
       trait DeterminantMethod {
-        def determinant[T : Numeric : ClassTag](M: Matrix[T]): Double
+        def determinant[T: Numeric: ClassTag](M: Matrix[T]): Double
       }
 
       object DeterminantMethods {
@@ -124,11 +121,12 @@ object Algebra {
         object LUPDecompositionMethod extends DeterminantMethod {
 
           /**
-            * O(n^3), n = no rows = no columns
-            */
-          def determinant[T : Numeric : ClassTag](M: Matrix[T]): Double =
-            lupDecomposition(M) map { case (_, upperMatrix, permutationMatrix, detP) =>
-              (1.0 /: (0 until size(M)._1))((prev, k) => prev*upperMatrix(k)(k))*math.pow(-1.0, detP)
+           * O(n^3), n = no rows = no columns
+           */
+          def determinant[T: Numeric: ClassTag](M: Matrix[T]): Double =
+            lupDecomposition(M) map {
+              case (_, upperMatrix, permutationMatrix, detP) =>
+                (1.0 /: (0 until size(M)._1))((prev, k) => prev * upperMatrix(k)(k)) * math.pow(-1.0, detP)
             } getOrElse 0.0
 
         }
@@ -141,49 +139,49 @@ object Algebra {
       }
 
       /**
-        * Lower - Upper - Permutation Decomposition
-        * O(n^3)
-        *
-        * This is a referentially transparent adaptation of Thomas Cormen's algorithm.
-        *
-        * @param A Square matrix to decompose. Note that the return matrix type isn't T anymore but Double,
-        *          that is a constraint imposed by the lack of the division operation in the [[Numeric]] ops interface.
-        *
-        * @return If the matrix is square and not singular: Some((L, U, P, detP))
-        */
-      def lupDecomposition[T : Numeric](A: Matrix[T]): Option[(Matrix[Double], Matrix[Double], Matrix[Double], Int)] = {
+       * Lower - Upper - Permutation Decomposition
+       * O(n^3)
+       *
+       * This is a referentially transparent adaptation of Thomas Cormen's algorithm.
+       *
+       * @param A Square matrix to decompose. Note that the return matrix type isn't T anymore but Double,
+       *          that is a constraint imposed by the lack of the division operation in the [[Numeric]] ops interface.
+       *
+       * @return If the matrix is square and not singular: Some((L, U, P, detP))
+       */
+      def lupDecomposition[T: Numeric](A: Matrix[T]): Option[(Matrix[Double], Matrix[Double], Matrix[Double], Int)] = {
 
         val num = implicitly[Numeric[T]]
         import num.mkNumericOps
 
-        def recLUP(A: Matrix[Double], n: Int, K: Int, p: Vector[Int], accDetP: Int):
-          Option[(Matrix[Double], Vector[Int], Int)] = {
+        def recLUP(A: Matrix[Double], n: Int, K: Int, p: Vector[Int], accDetP: Int): Option[(Matrix[Double], Vector[Int], Int)] = {
 
           val (prow, pi) = A.zipWithIndex.drop(K) maxBy { case (row, _) => row(K).abs }
-          if(prow(K) == 0.0) None //The input can't be a singular matrix
+          if (prow(K) == 0.0) None //The input can't be a singular matrix
           else {
             val Kprime = pi
-            def iK4KPrime(i: Int): Int = if(i == K) Kprime else if(i == Kprime) K else i
-            def aik(i: Int): Double = A(iK4KPrime(i))(K)/A(Kprime)(K)
+            def iK4KPrime(i: Int): Int = if (i == K) Kprime else if (i == Kprime) K else i
+            def aik(i: Int): Double = A(iK4KPrime(i))(K) / A(Kprime)(K)
 
             val newp = p.zipWithIndex map { case (_, K) => p(Kprime); case (_, Kprime) => p(K); case (v, _) => v }
 
             val newA = positionalValues(n, n) {
               case (i, K) if i > K => aik(i)
-              case (i, j) if i > K && j > K => A(iK4KPrime(i))(j)-aik(i)*A(Kprime)(j)
+              case (i, j) if i > K && j > K => A(iK4KPrime(i))(j) - aik(i) * A(Kprime)(j)
               case (i, j) => A(iK4KPrime(i))(j)
             }
-            if(K < n-1) recLUP(newA, n, K+1, newp, accDetP + (if(K != Kprime) 1 else 0)) else Some((A, p, accDetP))
+            if (K < n - 1) recLUP(newA, n, K + 1, newp, accDetP + (if (K != Kprime) 1 else 0)) else Some((A, p, accDetP))
           }
         }
 
         Some(size(A)) collect {
-          case (n,m) if n == m && n > 0 =>
-            recLUP(fmap(A)(_.toDouble), n, 0, (0 until n) toVector, 0) map { case (lu, p, detP) =>
-              val L = positionalValues(n, n)((i, j) => if(i == j) 1.0 else if(j < i) lu(i)(j) else 0.0)
-              val U = positionalValues(n, n)((i, j) => if(j >= i) lu(i)(j) else 0.0)
-              val P = positionalValues(n, n)((i, j) => if(p(i) == j) 1.0 else 0.0)
-              (L, U, P, detP)
+          case (n, m) if n == m && n > 0 =>
+            recLUP(fmap(A)(_.toDouble), n, 0, (0 until n) toVector, 0) map {
+              case (lu, p, detP) =>
+                val L = positionalValues(n, n)((i, j) => if (i == j) 1.0 else if (j < i) lu(i)(j) else 0.0)
+                val U = positionalValues(n, n)((i, j) => if (j >= i) lu(i)(j) else 0.0)
+                val P = positionalValues(n, n)((i, j) => if (p(i) == j) 1.0 else 0.0)
+                (L, U, P, detP)
             }
         } flatten
 
@@ -191,11 +189,9 @@ object Algebra {
 
     }
 
+    implicit class NumericMatrix[T: Numeric: ClassTag](m: Matrix[T]) {
 
-
-    implicit class NumericMatrix[T: Numeric : ClassTag](m: Matrix[T]) {
-
-      import org.pfcoperez.dailyalgorithm.Algebra.Matrix.NumericMatrix.{MultiplicationMethod, DeterminantMethod}
+      import org.pfcoperez.dailyalgorithm.Algebra.Matrix.NumericMatrix.{ MultiplicationMethod, DeterminantMethod }
       val numericTypeclass = implicitly[Numeric[T]]
       import numericTypeclass.mkNumericOps
 
@@ -217,13 +213,13 @@ object Algebra {
 
     }
 
-    def zeros[T: Numeric : ClassTag](n: Int, m: Int): Matrix[T] =
+    def zeros[T: Numeric: ClassTag](n: Int, m: Int): Matrix[T] =
       Array.fill(n)(Array.fill(m)(implicitly[Numeric[T]].zero))
 
     def positionalValues[T: ClassTag](n: Int, m: Int)(pos2value: (Int, Int) => T): Matrix[T] =
       (0 until n) map (i => (0 until m) map (pos2value(i, _)) toArray) toArray
 
-    def identity[T: Numeric : ClassTag](n: Int, m: Int): Matrix[T] =
+    def identity[T: Numeric: ClassTag](n: Int, m: Int): Matrix[T] =
       positionalValues(n, m) {
         case (i, j) if i == j => implicitly[Numeric[T]].one
         case _ => implicitly[Numeric[T]].zero
@@ -237,7 +233,6 @@ object Algebra {
     def size[T](m: Matrix[T]): (Int, Int) = m.length -> m.head.length
 
   }
-
 
   /* Use example
   import Matrix._
@@ -260,6 +255,5 @@ object Algebra {
       println
     }
   }*/
-
 
 }

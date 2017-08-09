@@ -9,27 +9,25 @@ object FunctionalNaiveDating extends App {
 
     val maleCandidates: List[String] = List(
       "LeChuck",
-      "Victor"
-    )
+      "Victor")
 
     val femaleCandidates: List[String] = List(
       "Elaine",
       "Carla",
-      "Victoria"
-    )
+      "Victoria")
 
   }
 
   object MatchingScores {
 
     /**
-      * A naive match score function, it predicts the success
-      * of a relationship upon how similar their names are:
-      *
-      * In this example imaginary world, a couple with rather different
-      * names will get along better than partners with similar names
-      *
-      */
+     * A naive match score function, it predicts the success
+     * of a relationship upon how similar their names are:
+     *
+     * In this example imaginary world, a couple with rather different
+     * names will get along better than partners with similar names
+     *
+     */
     def namingScore(nameA: String, nameB: String): ((String, String), Int) =
       (nameA -> nameB -> (nameA diff nameB).size)
 
@@ -39,9 +37,9 @@ object FunctionalNaiveDating extends App {
   import CandidateSelectionSystem._
 
   /**
-    * A couple matching algorithm based on a score function
-    * leveraging Applicative to easily apply the evaluation.
-    */
+   * A couple matching algorithm based on a score function
+   * leveraging Applicative to easily apply the evaluation.
+   */
   def matchScores: List[((String, String), Int)] =
     Applicative[List].pure((namingScore(_, _)).curried) ap {
       femaleCandidates.map(_.toLowerCase)

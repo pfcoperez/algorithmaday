@@ -11,23 +11,23 @@ class MonadicDisjointSetsSpec extends FlatSpec with Matchers {
     import MonadicDisjointSets._
 
     /**
-      *  Using the "for" notation to seamlessly handle
-      *  state propagation after each operation.
-      * 
-      **/
+     *  Using the "for" notation to seamlessly handle
+     *  state propagation after each operation.
+     *
+     */
     val operations = for {
-      _ <- unionState(1,2)
+      _ <- unionState(1, 2)
       oneAndTwo <- findState(2)
-      _ <- unionState(3,4)
+      _ <- unionState(3, 4)
       threeAndFour <- findState(3)
-      _ <- unionState(2,3)
+      _ <- unionState(2, 3)
       allFromOne <- findState(1)
       allFromTwo <- findState(2)
       allFromThree <- findState(3)
       allFromFour <- findState(4)
     } yield (oneAndTwo, threeAndFour, allFromOne, allFromTwo, allFromThree, allFromFour)
 
-    /* 
+    /*
      val state0 = DisjointSets(1,2,3,4)
      val (state1, _) = state0.union(1,2)
      val (state2, oneAndTwo) = state1.find(2)
@@ -47,7 +47,7 @@ class MonadicDisjointSetsSpec extends FlatSpec with Matchers {
       Some(d),
       Some(e),
       Some(f)
-    ) = operations.runA(DisjointSets(1,2,3,4)).value
+      ) = operations.runA(DisjointSets(1, 2, 3, 4)).value
 
     a should not equal (b)
     c shouldBe d

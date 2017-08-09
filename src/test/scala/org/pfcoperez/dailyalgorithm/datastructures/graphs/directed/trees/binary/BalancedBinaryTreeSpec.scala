@@ -1,19 +1,18 @@
-package org.pfcoperez.dailyalgorithm.datastructures.graphs
+package org.pfcoperez.dailyalgorithm.datastructures.graphs.directed.trees.binary
 
-import org.pfcoperez.dailyalgorithm.datastructures.Graphs.BinaryTrees._
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{ FlatSpec, Matchers }
 
-class BalancedBinaryTreesSpec extends FlatSpec with Matchers {
+class BalancedBinaryTreeSpec extends FlatSpec with Matchers {
 
   import BalancedBinaryTree._
 
-  def generateBalancedTree[T : Ordering](
-                                          input: Seq[T],
-                                          checkBalanceAtEachInsert: Boolean = false): BinaryTree[T] =
+  def generateBalancedTree[T: Ordering](
+    input: Seq[T],
+    checkBalanceAtEachInsert: Boolean = false): BinaryTree[T] =
     ((Empty: BinaryTree[T]) /: input) {
       (tree, element) =>
         val newTree = insert(tree)(element)
-        if(checkBalanceAtEachInsert)
+        if (checkBalanceAtEachInsert)
           checkBalance(newTree) // Balance is tested after each insert
         newTree
     }
@@ -34,13 +33,14 @@ class BalancedBinaryTreesSpec extends FlatSpec with Matchers {
   def checkBalance[T](binaryTree: BinaryTree[T]): Unit = {
 
     def siblingsHeights[T](btree: BinaryTree[T]): List[(Int, Int)] = btree match {
-      case Empty => (0,0)::Nil
+      case Empty => (0, 0) :: Nil
       case Node(left, _, right) =>
         siblingsHeights(left) ++ List(height(left) -> height(right)) ++ siblingsHeights(right)
     }
 
-    siblingsHeights(binaryTree) foreach { case (lh, rh) =>
-      math.abs(lh-rh) should be <= 1
+    siblingsHeights(binaryTree) foreach {
+      case (lh, rh) =>
+        math.abs(lh - rh) should be <= 1
     }
 
   }
@@ -81,7 +81,7 @@ class BalancedBinaryTreesSpec extends FlatSpec with Matchers {
     checkBalance(a)
     checkBalance(b)
 
-    val possibleBlends = Seq(merge(a,b), merge(b,a))
+    val possibleBlends = Seq(merge(a, b), merge(b, a))
 
     possibleBlends foreach { combinedBtree =>
       checkBinaryTreeInvariant(combinedBtree)
