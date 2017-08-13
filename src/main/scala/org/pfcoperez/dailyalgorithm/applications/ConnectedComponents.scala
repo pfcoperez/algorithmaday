@@ -1,4 +1,4 @@
-package org.pfcoperez.algorithmaday.applications
+package org.pfcoperez.dailyalgorithm.applications
 
 trait ConnectedComponentsOps {
 

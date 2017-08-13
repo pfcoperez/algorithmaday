@@ -1,4 +1,4 @@
-package org.pfcoperez.algorithmaday.applications
+package org.pfcoperez.dailyalgorithm.applications
 
 import org.scalacheck.Gen
 import org.scalatest.{ FlatSpec, Matchers }
