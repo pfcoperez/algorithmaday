@@ -1,11 +1,16 @@
 package org.pfcoperez.dailyalgorithm.datastructures.graphs
 
-object Undirected {
+object undirected {
 
   type NoWeight = Unit
 
-  case class Edge[Node: Ordering, W](val a: Node, val b: Node, val weight: W) {
+  case class Edge[Node: Ordering, W](a: Node, b: Node, weight: W) {
     override def hashCode = (Seq(a, b).sorted, weight).hashCode
+  }
+
+  object Edge {
+    def apply[Node: Ordering](
+      a: Node, b: Node): Edge[Node, NoWeight] = Edge(a, b, ())
   }
 
   type UndirectedGraph[Node] = UndirectedWeighedGraph[Node, NoWeight]
@@ -48,8 +53,7 @@ object Undirected {
 
     def apply[Node: Ordering](
       nodes: Set[Node],
-      edges: Seq[Edge[Node, NoWeight]]
-    ): UndirectedWeighedGraph[Node, NoWeight] = UndirectedWeighedGraph(nodes, edges)
+      edges: Seq[Edge[Node, NoWeight]]): UndirectedWeighedGraph[Node, NoWeight] = UndirectedWeighedGraph(nodes, edges)
 
   }
 
@@ -84,6 +88,10 @@ object Undirected {
     def adjacentTo(node: Node): Set[Node] =
       relations.getOrElse(node, Map.empty[Node, Edge[Node, W]]).keySet
 
+    /**
+      * Add an edge between two nodes in the graph.
+      * O(1)
+      */
     def +(edge: Edge[Node, W]): UndirectedWeighedGraph[Node, W] = {
       val Edge(a, b, _) = edge
       val newRelations = (relations /: Seq(a, b).zip(Seq(b, a))) {
@@ -94,18 +102,28 @@ object Undirected {
       new UndirectedWeighedGraph(nodes, newRelations, updatedCounters)
     }
 
+    /**
+      * Add a node the graph.
+      * O(1)
+      */
     def +(node: Node): UndirectedWeighedGraph[Node, W] = {
       new UndirectedWeighedGraph(nodes + node, relations, edgeCounters)
     }
 
+    /*
+     * Remove an edge from the graph
+     * O(1)
+     */
     def -(edge: Edge[Node, W]): UndirectedWeighedGraph[Node, W] = {
       val Edge(a, b, w) = edge
       require(Seq(a, b).forall(nodes contains _), invalidEdgeError)
 
       val (newRelations, newCounters) = {
+        //Decrease the number of this edge counters.
         val newC = edgeCounters.getOrElse(edge, 1) - 1
-        if (newC == 0) {
+        if (newC == 0) { // If there are no more:
           val newRelations = (relations /: Seq(a, b).zip(Seq(b, a))) {
+            // Then there is no longer a relation between `a` and `b`
             case (updatedRelations, (from, to)) =>
               updatedRelations.get(from) map { adjacentEntries =>
                 updatedRelations.updated(from, adjacentEntries - to)
@@ -118,6 +136,10 @@ object Undirected {
       new UndirectedWeighedGraph(nodes, newRelations, newCounters)
     }
 
+    /** 
+      * Remove a node from the graph
+      * O(n+m), n = number of nodes, m = number of edges in the graph 
+      */
     def -(node: Node): UndirectedWeighedGraph[Node, W] = {
       val newCounters = edgeCounters filterKeys {
         case Edge(a, b, _) => !Set(a, b).contains(node)
