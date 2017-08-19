@@ -89,9 +89,9 @@ object undirected {
       relations.getOrElse(node, Map.empty[Node, Edge[Node, W]]).keySet
 
     /**
-      * Add an edge between two nodes in the graph.
-      * O(1)
-      */
+     * Add an edge between two nodes in the graph.
+     * O(1)
+     */
     def +(edge: Edge[Node, W]): UndirectedWeighedGraph[Node, W] = {
       val Edge(a, b, _) = edge
       val newRelations = (relations /: Seq(a, b).zip(Seq(b, a))) {
@@ -103,9 +103,9 @@ object undirected {
     }
 
     /**
-      * Add a node the graph.
-      * O(1)
-      */
+     * Add a node the graph.
+     * O(1)
+     */
     def +(node: Node): UndirectedWeighedGraph[Node, W] = {
       new UndirectedWeighedGraph(nodes + node, relations, edgeCounters)
     }
@@ -136,10 +136,10 @@ object undirected {
       new UndirectedWeighedGraph(nodes, newRelations, newCounters)
     }
 
-    /** 
-      * Remove a node from the graph
-      * O(n+m), n = number of nodes, m = number of edges in the graph 
-      */
+    /**
+     * Remove a node from the graph
+     * O(n+m), n = number of nodes, m = number of edges in the graph
+     */
     def -(node: Node): UndirectedWeighedGraph[Node, W] = {
       val newCounters = edgeCounters filterKeys {
         case Edge(a, b, _) => !Set(a, b).contains(node)
