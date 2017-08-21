@@ -5,7 +5,12 @@ object undirected {
   type NoWeight = Unit
 
   case class Edge[Node: Ordering, W](a: Node, b: Node, weight: W) {
-    override def hashCode = (Seq(a, b).sorted, weight).hashCode
+    private def key = (Seq(a, b).sorted, weight)
+    override def hashCode = key.hashCode
+    override def equals(that: Any): Boolean = that match {
+      case that: Edge[Node, W] => key == that.key
+      case _ => false
+    }
   }
 
   object Edge {
