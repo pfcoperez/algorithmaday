@@ -1,5 +1,7 @@
 package org.pfcoperez.dailyalgorithm.applications
 
+import scala.language.postfixOps
+
 object MinCutKarger {
 
   import org.pfcoperez.dailyalgorithm.numericmethods.random.impl.IntRandom
@@ -8,10 +10,10 @@ object MinCutKarger {
 
   /*
    * Randomized minimum cut.
-   * Given an undirected connected node, finds a sequence of nodes to 
+   * Given an undirected connected node, finds a sequence of nodes to
    * be removed in order to make a partition.
    * O(n^2 m) [Worst case], n = number of nodes, m = number of edges
-   * 
+   *
    */
   def minCut[Node: Ordering, W](
     ug: UndirectedWeighedGraph[Node, W],
@@ -24,17 +26,15 @@ object MinCutKarger {
     } toMap
 
     /**
-      * Merge two nodes keeping track of the original
-      * labels.
-      * 
-      * O(nm) [Worst case], n = number of nodes, m = number of edges
-      * 
-      */
+     * Merge two nodes keeping track of the original
+     * labels.
+     *
+     * O(nm) [Worst case], n = number of nodes, m = number of edges
+     */
     def merge(
       ug: UndirectedWeighedGraph[Node, W],
       edge2label: Map[EdgeType, Set[Int]])(
       assimilated: Node, host: Node): (UndirectedWeighedGraph[Node, W], Map[EdgeType, Set[Int]]) = {
-
       // The assimilated node gets deleted, its edges assimilated as ...
       (((ug - assimilated), edge2label) /: ug.edges(assimilated)) {
         case ((updatedGraph, labels), edge @ Edge(from, to, w)) =>
@@ -49,7 +49,6 @@ object MinCutKarger {
             ((updatedGraph + updatedEdge), updatedLabels)
 
           } getOrElse ((updatedGraph, labels))
-
       }
     }
 
@@ -80,9 +79,7 @@ object MinCutKarger {
       }
 
     }
-
     minCut((ug, labels), new IntRandom(randomSeed))
-
   }
 
 }
