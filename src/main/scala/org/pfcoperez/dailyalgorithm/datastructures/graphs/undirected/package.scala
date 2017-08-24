@@ -30,7 +30,7 @@ package object undirected {
     /**
      * Provide the list of edges in the graph.
      */
-    def edges: Seq[EdgeType]
+    def edges(): Seq[EdgeType]
 
     /**
      * Provide the list of edges related to the given node
@@ -62,5 +62,7 @@ package object undirected {
     def -(node: Node): UndirectedGraph
 
   }
+
+  private[undirected] val invalidEdgeError = "Edges should connect nodes in the graph"
 
 }

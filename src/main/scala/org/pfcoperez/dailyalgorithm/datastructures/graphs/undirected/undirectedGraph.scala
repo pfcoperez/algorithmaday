@@ -38,8 +38,6 @@ object UndirectedWeighedGraph {
 
   }
 
-  private val invalidEdgeError = "Edges should connect nodes in the graph"
-
 }
 
 object UndirectedGraph {
@@ -47,14 +45,13 @@ object UndirectedGraph {
   def apply[Node: Ordering](
     nodes: Set[Node],
     edges: Seq[Edge[Node, NoWeight]]): UndirectedWeighedGraph[Node, NoWeight] = UndirectedWeighedGraph(nodes, edges)
+
 }
 
 class UndirectedWeighedGraph[Node, W] private (
   val nodes: Set[Node],
   private val relations: Map[Node, Map[Node, Edge[Node, W]]],
   private val edgeCounters: Map[Edge[Node, W], Int]) extends UndirectedGraphOps[Node, W, Edge[Node, W], UndirectedWeighedGraph[Node, W]] {
-
-  import UndirectedWeighedGraph.invalidEdgeError
 
   /**
    * Provide the list of edges in the graph.
