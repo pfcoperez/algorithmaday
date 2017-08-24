@@ -2,6 +2,8 @@ name := "algorithmaday"
 
 version := "1.0"
 
+organization := "org.pfcoperez"
+
 scalaVersion := "2.11.8"
 
 libraryDependencies ++= Seq(
