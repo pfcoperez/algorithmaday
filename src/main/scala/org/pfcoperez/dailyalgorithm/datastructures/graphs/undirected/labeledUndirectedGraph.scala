@@ -106,7 +106,7 @@ object labeled {
       }
       val newRelations = (relations - node) mapValues (_ - node) filter (_._2.nonEmpty)
       new UndirectedWeighedGraph(nodes - node, newRelations, newEdgeSet)
-   } 
+    }
 
   }
 
