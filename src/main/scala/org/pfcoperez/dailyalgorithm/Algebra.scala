@@ -14,6 +14,19 @@ object Algebra {
         (for (row <- M) yield (for (cell <- row) yield cell.toString).mkString(" ")) mkString "\n"
     }
 
+    implicit class TransposableMatrix[T](M: Matrix[T]) {
+
+      def T: Matrix[T] = new Matrix[T] {
+        def apply(i: Int): Array[T] = new Array[T] {
+          def apply(j: Int): T = M(j)(i)
+          def length: Int = M.length
+        }
+
+        def length: Int = M.headOption.map(_.length).getOrElse(0)
+      }
+
+    }
+
     object NumericMatrix {
 
       trait MultiplicationMethod {
