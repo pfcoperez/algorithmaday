@@ -2,7 +2,9 @@ package org.pfcoperez.dailyalgorithm.datastructures.graphs
 
 package object directed {
 
-  import org.pfcoperez.dailyalgorithm.Algebra.Matrix.{ Matrix, positionalValues }
+  import org.pfcoperez.dailyalgorithm.Algebra.Matrix
+  import org.pfcoperez.dailyalgorithm.Algebra.Matrix.positionalValues
+
   import scala.collection.immutable.Queue
 
   type NoWeight = Unit

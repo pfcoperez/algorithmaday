@@ -1,6 +1,6 @@
 package org.pfcoperez.dailyalgorithm
 
-import org.pfcoperez.dailyalgorithm.Algebra.Matrix.Matrix
+import org.pfcoperez.dailyalgorithm.Algebra.Matrix
 import org.pfcoperez.dailyalgorithm.Algebra.Matrix.NumericMatrix
 import org.pfcoperez.dailyalgorithm.Algebra.Matrix.NumericMatrix.Implicits._
 
@@ -102,8 +102,8 @@ object Geometry {
         "The simplex should consist of as many points as its dimension + 1")
 
       val M: Matrix[Double] = simplexPoints.map { point =>
-        ((point.productIterator map { case v: Double => v }) ++ Iterator(1.0)) toArray
-      } toArray
+        ((point.productIterator map { case v: Double => v }) ++ Iterator(1.0)) toIndexedSeq
+      } toIndexedSeq
 
       M.det / fact(d)
 
