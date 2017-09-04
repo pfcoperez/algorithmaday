@@ -16,6 +16,13 @@ object Algebra {
 
     implicit class TransposableMatrix[T](M: Matrix[T]) {
 
+      /**
+       * Transpose matrix: O(1)
+       * 
+       * No need to copy the matrix, just stack the position changes in
+       * wrapped delegates.
+       *  
+       */
       def T: Matrix[T] = new Matrix[T] {
         def apply(i: Int): Array[T] = new Array[T] {
           def apply(j: Int): T = M(j)(i)
