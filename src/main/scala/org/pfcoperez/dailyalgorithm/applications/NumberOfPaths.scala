@@ -1,8 +1,10 @@
 package org.pfcoperez.dailyalgorithm.applications
 
+import org.pfcoperez.dailyalgorithm.Algebra.Matrix
+import org.pfcoperez.dailyalgorithm.Algebra.Matrix._
 import org.pfcoperez.dailyalgorithm.Algebra.Matrix.NumericMatrix.MultiplicationMethod
 import org.pfcoperez.dailyalgorithm.Algebra.Matrix.NumericMatrix.MultiplicationMethods._
-import org.pfcoperez.dailyalgorithm.Algebra.Matrix._
+
 import org.pfcoperez.dailyalgorithm.datastructures.graphs.directed._
 
 object NumberOfPaths {

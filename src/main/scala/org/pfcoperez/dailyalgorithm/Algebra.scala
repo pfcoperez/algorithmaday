@@ -4,13 +4,27 @@ import scala.reflect.ClassTag
 
 object Algebra {
 
-  object Matrix {
+  type Array[T] = IndexedSeq[T]
+  type Matrix[T] = Array[Array[T]]
 
-    type Matrix[T] = Array[Array[T]]
+  object Matrix {
 
     implicit class PrintableMatrix[T](M: Matrix[T]) {
       override def toString: String =
         (for (row <- M) yield (for (cell <- row) yield cell.toString).mkString(" ")) mkString "\n"
+    }
+
+    implicit class TransposableMatrix[T](M: Matrix[T]) {
+
+      def T: Matrix[T] = new Matrix[T] {
+        def apply(i: Int): Array[T] = new Array[T] {
+          def apply(j: Int): T = M(j)(i)
+          def length: Int = M.length
+        }
+
+        def length: Int = M.headOption.map(_.length).getOrElse(0)
+      }
+
     }
 
     object NumericMatrix {
@@ -32,7 +46,7 @@ object Algebra {
               (0 until B.head.length).map(j =>
                 (numericEvidence.zero /: (0 until A.head.length)) {
                   (acc, k) => numericEvidence.plus(acc, numericEvidence.times(A(i)(k), B(k)(j)))
-                }) toArray) toArray
+                }) toIndexedSeq) toIndexedSeq
           }
 
         }
@@ -88,8 +102,8 @@ object Algebra {
               val aQs = splitInput(A)
               val bQs = splitInput(B)
 
-              val Array(a11, a12, a21, a22) = aQs.flatten
-              val Array(b11, b12, b21, b22) = bQs.flatten
+              val Seq(a11, a12, a21, a22) = aQs.flatten
+              val Seq(b11, b12, b21, b22) = bQs.flatten
 
               val m1 = multiply(a11 + a22, b11 + b22)
               val m2 = multiply(a21 + a22, b11)
@@ -100,9 +114,10 @@ object Algebra {
               val m7 = multiply(a12 - a22, b21 + b22)
 
               mergeResults {
+                import scala.Array
                 Array(
-                  Array(m1 + m4 - m5 + m7, m3 + m5),
-                  Array(m2 + m4, m1 - m2 + m3 + m6))
+                  Array(m1 + m4 - m5 + m7, m3 + m5): IndexedSeq[Matrix[T]],
+                  Array(m2 + m4, m1 - m2 + m3 + m6): IndexedSeq[Matrix[T]])
               }
 
             } else fallback.multiply(A, B)
@@ -214,10 +229,10 @@ object Algebra {
     }
 
     def zeros[T: Numeric: ClassTag](n: Int, m: Int): Matrix[T] =
-      Array.fill(n)(Array.fill(m)(implicitly[Numeric[T]].zero))
+      scala.Array.fill(n)(scala.Array.fill(m)(implicitly[Numeric[T]].zero): IndexedSeq[T])
 
     def positionalValues[T: ClassTag](n: Int, m: Int)(pos2value: (Int, Int) => T): Matrix[T] =
-      (0 until n) map (i => (0 until m) map (pos2value(i, _)) toArray) toArray
+      (0 until n) map (i => (0 until m) map (pos2value(i, _)) toIndexedSeq) toIndexedSeq
 
     def identity[T: Numeric: ClassTag](n: Int, m: Int): Matrix[T] =
       positionalValues(n, m) {

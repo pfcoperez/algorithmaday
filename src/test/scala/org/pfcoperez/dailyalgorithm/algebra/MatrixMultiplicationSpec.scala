@@ -2,6 +2,7 @@ package org.pfcoperez.dailyalgorithm.algebra
 
 import org.pfcoperez.dailyalgorithm.Algebra.Matrix.NumericMatrix.MultiplicationMethods.{ DivideAndConquer, StrassenDividideAndConquer, NaiveMultiplicationMethod }
 import org.pfcoperez.dailyalgorithm.Algebra.Matrix._
+import org.pfcoperez.dailyalgorithm.Algebra.Matrix
 import org.scalatest.{ Matchers, WordSpec }
 
 object MatrixMultiplicationSpec {
@@ -36,7 +37,7 @@ class MatrixMultiplicationSpec extends WordSpec with Matchers {
 
             val randomMatrix = randomIntMatrix(l, l)
 
-            (randomMatrix * identity(l, l)).deep should equal(randomMatrix)
+            (randomMatrix * identity(l, l)).map(_.toArray).toArray.deep should equal(randomMatrix)
 
           }
 
@@ -49,7 +50,8 @@ class MatrixMultiplicationSpec extends WordSpec with Matchers {
             val A = randomIntMatrix(l, l)
             val B = randomIntMatrix(l, l)
 
-            (A * B).deep should equal(A.*(B)(NaiveMultiplicationMethod).deep)
+            (A * B).map(_.toArray).toArray.deep should equal(
+              A.*(B)(NaiveMultiplicationMethod).map(_.toArray).toArray.deep)
 
           }
 

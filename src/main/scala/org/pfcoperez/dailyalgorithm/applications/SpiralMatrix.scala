@@ -1,5 +1,6 @@
 package org.pfcoperez.dailyalgorithm.applications
 
+import org.pfcoperez.dailyalgorithm.Algebra.Matrix
 import org.pfcoperez.dailyalgorithm.Algebra.Matrix._
 
 object SpiralMatrix extends App {
