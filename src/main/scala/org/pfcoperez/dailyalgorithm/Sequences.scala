@@ -169,4 +169,34 @@ object Sequences {
     results.reverse
   }
 
+  /**
+   * Find the longest consecutive chain of elements from `source`.
+   * O(n), n = number of elements in `source`.
+   *
+   */
+  def maxConsecutiveSequence[T](source: Seq[T])(implicit ord: Numeric[T]): Seq[T] = {
+    import ord.{ mkNumericOps, one }
+
+    def maxConsecutiveSequence(available: Set[T], maxSeq: Vector[T], current: Vector[T]): Seq[T] =
+      if (available.isEmpty) maxSeq.toList else {
+
+        val (nextSeq, nextAvailable) = {
+          if (current.isEmpty) {
+            (Vector(available.head), available.tail)
+          } else if (available.contains(current.head - one)) {
+            val candidate = current.head - one
+            (candidate +: current, available - candidate)
+          } else if (available.contains(current.last + one)) {
+            val candidate = current.last + one
+            (current :+ candidate, available - candidate)
+          } else
+            (Vector.empty, available)
+        }
+
+        maxConsecutiveSequence(nextAvailable, Seq(maxSeq, nextSeq).maxBy(_.size), nextSeq)
+      }
+
+    maxConsecutiveSequence(source.toSet, Vector(), Vector())
+  }
+
 }
