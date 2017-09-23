@@ -199,4 +199,56 @@ object Sequences {
     maxConsecutiveSequence(source.toSet, Vector(), Vector())
   }
 
+  object HuffmanCoding {
+
+    import datastructures.graphs.directed.trees.binary.{ BinaryTree, Node, Empty }
+    import datastructures.heaps.BinaryHeap
+
+    case class AlphabetCode[T](encodingTable: Map[T, BigInt], decodingTree: BinaryTree[Option[T]])
+
+    def generateAlphabetCode[T](alphabet: Map[T, Int]): AlphabetCode[T] = {
+
+      type SymbolNode = Node[Option[T]]
+      type SymbolTree = (SymbolNode, BigInt)
+
+      val emptyForest = BinaryHeap.empty[SymbolTree](Ordering.by((t: SymbolTree) => t._2))
+
+      val primordialForest = (emptyForest /: alphabet) {
+        case (forest, (symbol, frequency)) =>
+          forest enqueue Node(Empty, Option(symbol), Empty) -> BigInt(frequency)
+      }
+
+      def buildSymbolsTree(forest: BinaryHeap[SymbolTree]): BinaryTree[Option[T]] =
+        if (forest.isEmpty) Empty
+        else if (forest.size == 1) forest.head._1
+        else {
+          val (nodeA, fA) = forest.head
+          val forestTail = forest.dequeue
+          val (nodeB, fB) = forestTail.head
+
+          val newTree = (Node(nodeA, None, nodeB), fA + fB)
+
+          buildSymbolsTree(forestTail.dequeue.enqueue(newTree))
+        }
+
+      val symbolsTree = buildSymbolsTree(primordialForest)
+
+      def buildTable(pathAndTreeToExplore: List[(BigInt, BinaryTree[Option[T]])], acc: Map[T, BigInt]): Map[T, BigInt] =
+        pathAndTreeToExplore match {
+          case (_, Empty) :: remaining => buildTable(remaining, acc)
+          case (path, Node(leftNode, v, rightNode)) :: remaining =>
+            val newAccumulator = v map (symbol => acc + (symbol -> path)) getOrElse acc
+            val Seq(left, right) = Seq(leftNode, rightNode).zipWithIndex map {
+              case (node, bit) => ((path << 1) + bit, node)
+            }
+            buildTable(left :: right :: remaining, newAccumulator)
+          case _ => acc
+        }
+
+      AlphabetCode(buildTable((BigInt(0), symbolsTree) :: Nil, Map.empty), symbolsTree)
+
+    }
+
+  }
+
 }
