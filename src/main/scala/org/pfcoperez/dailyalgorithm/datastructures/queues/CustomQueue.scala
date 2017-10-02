@@ -12,8 +12,8 @@ class CustomQueue[T] private (
   def head: Option[T] = heads.headOption
 
   /* Average: O(1) */
-    def enqueue(x: T): CustomQueue[T] =
-      keepInvariants(new CustomQueue[T](heads, x :: tails))
+  def enqueue(x: T): CustomQueue[T] =
+    keepInvariants(new CustomQueue[T](heads, x :: tails))
 
   def dequeue: CustomQueue[T] =
     keepInvariants(
