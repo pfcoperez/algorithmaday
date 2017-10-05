@@ -49,6 +49,8 @@ Accepted contributions will:
 
 **NOTE:** Feel free to open PRs even when those might not meet some or all of the requirements above described. The maintainer(s) will offer as much help as possible.
 
+Find and example [here](https://github.com/pfcoperez/algorithmaday/pull/9).
+
 Outstanding ones will:
 
  - Show functional patterns usage. Such as category theory application.
