@@ -1,11 +1,19 @@
 package org.pfcoperez.dailyalgorithm.datastructures
 
 import cats.syntax.either._
+import cats.instances.either._
 
 import Bits._
 
 object Bits {
   import Helper._
+
+  def apply(x: Seq[Boolean] = Seq.empty) =
+    (empty.asRight[Error] /: x) { (bs, b) =>
+      bs flatMap { _ append b }
+    }.right.get
+
+  def empty: Bits = zeros()
 
   def zeros(l: Long = 0L): Bits = {
     val bits =
@@ -58,8 +66,7 @@ class Bits private (val length: Long, private val bits: Storage) {
    * O(1)
    */
   def apply(idx: Long): Either[Error, Boolean] = resultOnLocation(idx) {
-    case BitLocation(block, byte, bit) =>
-      ((bits(block)(byte) & (0x01 << bit.toLong).toByte) > 0)
+    case l @ BitLocation(block, byte, bit) => ((bits(block)(byte) & (0x01 << bit)) > 0)
   }
 
   /**
@@ -67,8 +74,9 @@ class Bits private (val length: Long, private val bits: Storage) {
    * O(1)
    */
   def set(idx: Long, v: Boolean = false): Either[Error, Bits] = resultOnLocation(idx) { location =>
+    val bv = if (v) 1 else 0
     val BitLocation(block, byte, bit) = location
-    val newByte = (bits(block)(byte) | (0x01 << bit.toLong)).toByte
+    val newByte = (bits(block)(byte) | (bv << bit)).toByte
     val newBlock = bits(block).updated(byte, newByte)
     new Bits(length, bits.updated(block, newBlock))
   }
@@ -79,17 +87,19 @@ class Bits private (val length: Long, private val bits: Storage) {
    * Append bit
    * O(1)
    */
-  def append(b: Boolean): Either[Error, Bits] =
+  def append(b: Boolean): Either[Error, Bits] = {
     if (length == Long.MaxValue) MaxCapacityExceeded.asLeft
+    else if (length == 0) zeros(1).asRight
     else Right {
       val lastLocation = locateBit(length - 1)
       val newLocation = locateBit(length)
       val expandedBits: Storage =
         if (lastLocation.block != newLocation.block) bits :+ Vector[Byte](0)
-        else if (lastLocation.byte != newLocation.block)
+        else if (lastLocation.byte != newLocation.byte)
           bits.updated(bits.length - 1, bits.last :+ 0.toByte)
         else bits
       new Bits(length + 1, expandedBits)
-    } flatMap (_.set(length))
+    }
+  } flatMap (_.set(length, b))
 
 }

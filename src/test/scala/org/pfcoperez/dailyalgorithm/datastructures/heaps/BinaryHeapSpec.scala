@@ -5,9 +5,9 @@ import org.scalacheck._
 class BinaryHeapSpec extends Properties("Heap") {
 
   /**
-    * Sort a sequence elements using a Heap.
-    * O(n log n)
-    */
+   * Sort a sequence elements using a Heap.
+   * O(n log n)
+   */
   def heapSort[T: Ordering](s: Seq[T]): Seq[T] = {
     val heap = (BinaryHeap.empty[T] /: s)(_.enqueue(_))
     val (l, _) = ((1 to heap.size) :\ (List.empty[T], heap)) {
