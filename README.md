@@ -7,23 +7,20 @@ It's intended to be more a collection, a catalogue, than a library to be include
 
 ## Requests
 
-There is a high probability of you finding flagrant absences in this catalogue,
-that's why it would be nice if you could ask for implementations as well as
-suggesting changes to the published ones. You can do that:
+There is a high probability of you finding flagrant absences in this catalogue, that's why it would be nice if you could ask for implementations as well as suggest changes. You can do that:
 
- - Opening [an issue](https://github.com/pfcoperez/algorithmaday/issues/new) at this GitHub repository. You can find an example [here](https://github.com/pfcoperez/algorithmaday/issues/7)
+ - By opening [an issue](https://github.com/pfcoperez/algorithmaday/issues/new) at this GitHub repository. You can find an example [here](https://github.com/pfcoperez/algorithmaday/issues/7)
  - Through [algorithmaday](https://gitter.im/algorithmaday) Gitter channel.
- - Via Twitter: Throught direct messages or mentions.
+ - Via Twitter: Direct messages or just mentions.
 
-[@DailyAlgorithm](https://twitter.com/DailyAlgorithm) will
+[@DailyAlgorithm](https://twitter.com/DailyAlgorithm) will mention you if your suggestion leads to an entry in the feed.
 
 ## Contribute
 
 Keeping a daily feed of functional algorithm implementations is not
 a task for a one-human-army. That's why contributing to this project is highly encouraged.
 
-If these moving words haven't convinced you to loan your precious time to
-"the cause", you can take the following reasons:
+If these moving words haven't convinced you to loan your precious time to "the cause", you can always consider some of the following reasons:
 
 First: Implementing algorithms in Scala, constraining yourself to functional
 programming is one of the funniest puzzles you'll ever met.
@@ -31,9 +28,9 @@ programming is one of the funniest puzzles you'll ever met.
 Besides, from a selfish standpoint, you will:
 
 * Get the credit in the daily tweeter feed.
-* Learn new paths of solving things.
+* Train your problem solving skills.
 * Discuss about the approaches to solve problems and learn along the way.
-* **ONLY THIS MONTH!** Earn a [Hacktoberfest](https://hacktoberfest.digitalocean.com/) first t-shirt by contributing to an open source project.
+* **ONLY THIS MONTH!** Earn a [Hacktoberfest](https://hacktoberfest.digitalocean.com/) t-shirt by contributing to an open source project.
 
 But, more important are some of the reasons to support the Scala & Functional Programming communities:
 
@@ -50,7 +47,7 @@ Accepted contributions will:
  - Come with clear **time complexity** upper bound, at least for the average case.
  - Include a Twitter handle or other mean to refer the author in the feed.
 
-**NOTE:** Feel free to open PRs even when those might not meet some of all of the requirements above described. The maintainer(s) will offer as much help as possible.
+**NOTE:** Feel free to open PRs even when those might not meet some or all of the requirements above described. The maintainer(s) will offer as much help as possible.
 
 Outstanding ones will:
 
@@ -67,8 +64,7 @@ Algorithms and datastructures implementations are clustered together in packages
 in function of the kind of data they manipulate or the kind of problems they
 solve.
 
-If these families grow, new package trees should be created. Take
-`datastructures` as an example:
+If these families grow, new package trees should be created. Take `datastructures` as an example:
 
 * Root family [datastructures](https://github.com/pfcoperez/algorithmaday/tree/master/src/main/scala/org/pfcoperez/dailyalgorithm/datastructures):
   * [Graphs](https://github.com/pfcoperez/algorithmaday/tree/master/src/main/scala/org/pfcoperez/dailyalgorithm/datastructures/graphs): Implementation of graphs, directed or undirected, connected or not, trees or with cycles...
