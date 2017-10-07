@@ -1,6 +1,7 @@
 package org.pfcoperez.dailyalgorithm
 
 import scala.math.Ordering
+import org.pfcoperez.dailyalgorithm.datastructures.Bits
 
 object Sequences {
 
@@ -204,7 +205,7 @@ object Sequences {
     import datastructures.graphs.directed.trees.binary.{ BinaryTree, Node, Empty }
     import datastructures.heaps.BinaryHeap
 
-    case class AlphabetCode[T](encodingTable: Map[T, BigInt], decodingTree: BinaryTree[Option[T]])
+    case class AlphabetCode[T](encodingTable: Map[T, Bits], decodingTree: BinaryTree[Option[T]])
 
     def generateAlphabetCode[T](alphabet: Map[T, Int]): AlphabetCode[T] = {
 
@@ -233,19 +234,21 @@ object Sequences {
 
       val symbolsTree = buildSymbolsTree(primordialForest)
 
-      def buildTable(pathAndTreeToExplore: List[(BigInt, BinaryTree[Option[T]])], acc: Map[T, BigInt]): Map[T, BigInt] =
+      import cats.syntax.either._
+
+      def buildTable(pathAndTreeToExplore: List[(Bits, BinaryTree[Option[T]])], acc: Map[T, Bits]): Map[T, Bits] =
         pathAndTreeToExplore match {
           case (_, Empty) :: remaining => buildTable(remaining, acc)
           case (path, Node(leftNode, v, rightNode)) :: remaining =>
             val newAccumulator = v map (symbol => acc + (symbol -> path)) getOrElse acc
-            val Seq(left, right) = Seq(leftNode, rightNode).zipWithIndex map {
-              case (node, bit) => ((path << 1) + bit, node)
+            val Seq(left, right) = Seq(leftNode, rightNode).zipWithIndex flatMap {
+              case (node, bit) => path.append(bit == 1).toOption.map(_ -> node)
             }
             buildTable(left :: right :: remaining, newAccumulator)
           case _ => acc
         }
 
-      AlphabetCode(buildTable((BigInt(0), symbolsTree) :: Nil, Map.empty), symbolsTree)
+      AlphabetCode(buildTable((Bits.empty, symbolsTree) :: Nil, Map.empty), symbolsTree)
 
     }
 
