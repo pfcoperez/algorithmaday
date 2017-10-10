@@ -23,4 +23,18 @@ class BitsSpec extends FlatSpec with Matchers {
 
   }
 
+  it should "act as a monoid where empty is zero and concatenating is combine" in {
+
+    import Bits._
+    import cats.Monoid
+    import cats.syntax.monoid._
+
+    implicit def bool2bits(x: Boolean): Bits = Bits(x :: Nil)
+
+    val bits = Monoid[Bits].empty |+| true |+| false |+| true |+| true
+
+    (0L until bits.length).map(bits(_).right.get) should equal(Seq(true, false, true, true))
+
+  }
+
 }

@@ -2,13 +2,14 @@ package org.pfcoperez.dailyalgorithm.datastructures
 
 import cats.syntax.either._
 import cats.instances.either._
+import cats.Monoid
 
 import Bits._
 
 object Bits {
   import Helper._
 
-  def apply(x: Seq[Boolean] = Seq.empty) =
+  def apply(x: Seq[Boolean] = Seq.empty): Bits =
     (empty.asRight[Error] /: x) { (bs, b) =>
       bs flatMap { _ append b }
     }.right.get
@@ -23,6 +24,22 @@ object Bits {
         Vector.fill(lastBlock)(Vector.fill(maxVectorSize.toInt)(0.toByte)) :+ Vector.fill(lastByte + 1)(0.toByte)
       }
     new Bits(l, bits)
+  }
+
+  implicit val bitsMonoid = new Monoid[Bits] {
+
+    def empty: Bits = Bits.empty
+
+    def combine(x: Bits, y: Bits): Bits =
+      (x /: (0L until y.length)) {
+        case (left: Bits, idx: Long) =>
+          val acc: Either[Error, Bits] = for {
+            rightValue <- y(idx)
+            updatedLeft <- left.append(rightValue)
+          } yield updatedLeft
+          acc.right.get
+      }
+
   }
 
   trait Error
