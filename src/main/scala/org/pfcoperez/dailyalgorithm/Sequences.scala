@@ -206,20 +206,37 @@ object Sequences {
     import datastructures.graphs.directed.trees.binary.{ BinaryTree, Node, Empty }
     import datastructures.heaps.BinaryHeap
 
+    /** Context class gluing a table to encode symbols and a binary to translate
+      * binary encodings back to the symbol they represent.
+      *
+      */
     case class AlphabetCode[T](encodingTable: Map[T, Bits], decodingTree: BinaryTree[Option[T]])
 
+    /** Build the required table to translate symbols into binary codes
+      * as well as the tree required to go back from binary encoding to
+      * the symbol generating it.
+      * 
+      * O(n*log(n)), n = number of symbols
+      * 
+      * @param alphabet frequency table: Statistics on the language.
+      */
     def generateAlphabetCode[T](alphabet: Map[T, Int]): AlphabetCode[T] = {
+      // The algorithm start with a forest of binary trees...
 
       type SymbolNode = Node[Option[T]]
       type SymbolTree = (SymbolNode, BigInt)
 
       val emptyForest = BinaryHeap.empty[SymbolTree](Ordering.by((t: SymbolTree) => t._2))
 
+      // ... one single element tree per alphabet symbol.
       val primordialForest = (emptyForest /: alphabet) {
         case (forest, (symbol, frequency)) =>
           forest enqueue Node(Empty, Option(symbol), Empty) -> BigInt(frequency)
       }
 
+      /** Cluster symbols by pairs: Two less frequent symbols become a parent node.
+        * O(n*log(n)), n = number of symbols
+        */
       def buildSymbolsTree(forest: BinaryHeap[SymbolTree]): BinaryTree[Option[T]] =
         if (forest.isEmpty) Empty
         else if (forest.size == 1) forest.head._1
@@ -233,10 +250,19 @@ object Sequences {
           buildSymbolsTree(forestTail.dequeue.enqueue(newTree))
         }
 
+      // The initial forest is then clustered by pairing less frequent symbols
       val symbolsTree = buildSymbolsTree(primordialForest)
 
       import cats.syntax.either._
 
+      /** The tree itself can be used to translate 
+        * binary strings into symbols (each bit, a decision: left/right)
+        */
+
+      /** Use the encoding to symbol translation tree to build
+        * the symbol to encoding table.
+        * O(n), n = number of symbols
+        */
       def buildTable(pathAndTreeToExplore: List[(Bits, BinaryTree[Option[T]])], acc: Map[T, Bits]): Map[T, Bits] =
         pathAndTreeToExplore match {
           case (_, Empty) :: remaining => buildTable(remaining, acc)
