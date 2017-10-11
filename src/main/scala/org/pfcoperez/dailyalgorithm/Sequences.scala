@@ -2,6 +2,7 @@ package org.pfcoperez.dailyalgorithm
 
 import scala.math.Ordering
 import org.pfcoperez.dailyalgorithm.datastructures.Bits
+import org.pfcoperez.dailyalgorithm.datastructures.Bits.{ Error => BitsError }
 
 object Sequences {
 
@@ -250,6 +251,43 @@ object Sequences {
 
       AlphabetCode(buildTable((Bits.empty, symbolsTree) :: Nil, Map.empty), symbolsTree)
 
+    }
+
+    import cats.syntax.monoid._
+    import cats.syntax.either._
+    import cats.syntax.foldable._
+    import cats.instances.list._
+
+    import Bits.bitsMonoid
+
+    def encodeMessage[T](msg: List[T])(implicit alphabetCode: AlphabetCode[T]): Bits =
+      msg.foldMap(alphabetCode.encodingTable)
+
+    def decodeMessage[T](binary: Bits)(implicit alphabetCode: AlphabetCode[T]): Either[BitsError, List[T]] = {
+      import alphabetCode.decodingTree
+      val L = binary.length
+
+      def decode(
+        idx: Long,
+        acc: Either[BitsError, List[T]],
+        currentNode: BinaryTree[Option[T]]): Either[BitsError, List[T]] = {
+        val ebit = binary(idx)
+        if (idx == L || ebit.isRight) {
+          lazy val Right(bit) = ebit
+          (idx, currentNode) match {
+            case (L, Node(_, Some(symbol), _)) => acc.map(symbol :: _)
+            case (L, _) => acc
+            case (_, Node(Empty, Some(symbol), _)) if !binary(idx).right.get =>
+              decode(idx, acc.map(symbol :: _), decodingTree)
+            case (_, Node(_, Some(symbol), Empty)) if binary(idx).right.get =>
+              decode(idx, acc.map(symbol :: _), decodingTree)
+            case (_, Node(left, _, right)) =>
+              decode(idx + 1L, acc, if (binary(idx).right.get) right else left)
+          }
+        } else ebit.map(_ => Nil)
+      }
+
+      decode(0, Nil.asRight[BitsError], decodingTree).map(_.reverse)
     }
 
   }
