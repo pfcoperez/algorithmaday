@@ -1,6 +1,8 @@
 package org.pfcoperez.dailyalgorithm
 
 import scala.math.Ordering
+import org.pfcoperez.dailyalgorithm.datastructures.Bits
+import org.pfcoperez.dailyalgorithm.datastructures.Bits.{ Error => BitsError }
 
 object Sequences {
 
@@ -204,20 +206,40 @@ object Sequences {
     import datastructures.graphs.directed.trees.binary.{ BinaryTree, Node, Empty }
     import datastructures.heaps.BinaryHeap
 
-    case class AlphabetCode[T](encodingTable: Map[T, BigInt], decodingTree: BinaryTree[Option[T]])
+    /**
+     * Context class gluing a table to encode symbols and a binary to translate
+     * binary encodings back to the symbol they represent.
+     *
+     */
+    case class AlphabetCode[T](encodingTable: Map[T, Bits], decodingTree: BinaryTree[Option[T]])
 
+    /**
+     * Build the required table to translate symbols into binary codes
+     * as well as the tree required to go back from binary encoding to
+     * the symbol generating it.
+     *
+     * O(n*log(n)), n = number of symbols
+     *
+     * @param alphabet frequency table: Statistics on the language.
+     */
     def generateAlphabetCode[T](alphabet: Map[T, Int]): AlphabetCode[T] = {
+      // The algorithm start with a forest of binary trees...
 
       type SymbolNode = Node[Option[T]]
       type SymbolTree = (SymbolNode, BigInt)
 
       val emptyForest = BinaryHeap.empty[SymbolTree](Ordering.by((t: SymbolTree) => t._2))
 
+      // ... one single element tree per alphabet symbol.
       val primordialForest = (emptyForest /: alphabet) {
         case (forest, (symbol, frequency)) =>
           forest enqueue Node(Empty, Option(symbol), Empty) -> BigInt(frequency)
       }
 
+      /**
+       * Cluster symbols by pairs: Two less frequent symbols become a parent node.
+       * O(n*log(n)), n = number of symbols
+       */
       def buildSymbolsTree(forest: BinaryHeap[SymbolTree]): BinaryTree[Option[T]] =
         if (forest.isEmpty) Empty
         else if (forest.size == 1) forest.head._1
@@ -231,22 +253,80 @@ object Sequences {
           buildSymbolsTree(forestTail.dequeue.enqueue(newTree))
         }
 
+      // The initial forest is then clustered by pairing less frequent symbols
       val symbolsTree = buildSymbolsTree(primordialForest)
 
-      def buildTable(pathAndTreeToExplore: List[(BigInt, BinaryTree[Option[T]])], acc: Map[T, BigInt]): Map[T, BigInt] =
+      import cats.syntax.either._
+
+      /**
+       * The tree itself can be used to translate
+       * binary strings into symbols (each bit, a decision: left/right)
+       */
+
+      /**
+       * Use the encoding to symbol translation tree to build
+       * the symbol to encoding table.
+       * O(n), n = number of symbols
+       */
+      def buildTable(pathAndTreeToExplore: List[(Bits, BinaryTree[Option[T]])], acc: Map[T, Bits]): Map[T, Bits] =
         pathAndTreeToExplore match {
           case (_, Empty) :: remaining => buildTable(remaining, acc)
           case (path, Node(leftNode, v, rightNode)) :: remaining =>
             val newAccumulator = v map (symbol => acc + (symbol -> path)) getOrElse acc
-            val Seq(left, right) = Seq(leftNode, rightNode).zipWithIndex map {
-              case (node, bit) => ((path << 1) + bit, node)
+            val Seq(left, right) = Seq(leftNode, rightNode).zipWithIndex flatMap {
+              case (node, bit) => path.append(bit == 1).toOption.map(_ -> node)
             }
             buildTable(left :: right :: remaining, newAccumulator)
           case _ => acc
         }
 
-      AlphabetCode(buildTable((BigInt(0), symbolsTree) :: Nil, Map.empty), symbolsTree)
+      AlphabetCode(buildTable((Bits.empty, symbolsTree) :: Nil, Map.empty), symbolsTree)
 
+    }
+
+    import cats.syntax.monoid._
+    import cats.syntax.either._
+    import cats.syntax.foldable._
+    import cats.instances.list._
+
+    import Bits.bitsMonoid
+
+    /**
+     * Encode a message as an optimized bit array using Huffman coding
+     * O(n), n = input message size
+     */
+    def encodeMessage[T](msg: List[T])(implicit alphabetCode: AlphabetCode[T]): Bits =
+      msg.foldMap(alphabetCode.encodingTable)
+
+    /**
+     * Decode the bits within an optimized bit array into a message (sequence of symbols)
+     * O(n), n = output message size
+     */
+    def decodeMessage[T](binary: Bits)(implicit alphabetCode: AlphabetCode[T]): Either[BitsError, List[T]] = {
+      import alphabetCode.decodingTree
+      val L = binary.length
+
+      def decode(
+        idx: Long,
+        acc: Either[BitsError, List[T]],
+        currentNode: BinaryTree[Option[T]]): Either[BitsError, List[T]] = {
+        val ebit = binary(idx)
+        if (idx == L || ebit.isRight) {
+          lazy val Right(bit) = ebit
+          (idx, currentNode) match {
+            case (L, Node(_, Some(symbol), _)) => acc.map(symbol :: _)
+            case (L, _) => acc
+            case (_, Node(Empty, Some(symbol), _)) if !binary(idx).right.get =>
+              decode(idx, acc.map(symbol :: _), decodingTree)
+            case (_, Node(_, Some(symbol), Empty)) if binary(idx).right.get =>
+              decode(idx, acc.map(symbol :: _), decodingTree)
+            case (_, Node(left, _, right)) =>
+              decode(idx + 1L, acc, if (binary(idx).right.get) right else left)
+          }
+        } else ebit.map(_ => Nil)
+      }
+
+      decode(0, Nil.asRight[BitsError], decodingTree).map(_.reverse)
     }
 
   }
