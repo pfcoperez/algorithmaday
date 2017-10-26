@@ -280,15 +280,20 @@ object Sequences {
     }
 
     import cats.syntax.monoid._
-    import cats.syntax.either._
     import cats.syntax.foldable._
     import cats.instances.list._
 
     import Bits.bitsMonoid
 
+    /** Encode a message as an optimized bit array using Huffman coding
+      * O(n), n = input message size
+      */
     def encodeMessage[T](msg: List[T])(implicit alphabetCode: AlphabetCode[T]): Bits =
       msg.foldMap(alphabetCode.encodingTable)
 
+    /** Decode the bits within an optimized bit array into a message (sequence of symbols)
+      * O(n), n = output message size
+      */
     def decodeMessage[T](binary: Bits)(implicit alphabetCode: AlphabetCode[T]): Either[BitsError, List[T]] = {
       import alphabetCode.decodingTree
       val L = binary.length
