@@ -4,7 +4,9 @@ version := "1.0"
 
 organization := "org.pfcoperez"
 
-scalaVersion := "2.11.8"
+val projectScalaVersion = "2.11.8"
+
+scalaVersion := projectScalaVersion
 
 libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.0.0",
@@ -12,6 +14,8 @@ libraryDependencies ++= Seq(
   "org.typelevel" %% "cats" % "0.9.0",
   "com.storm-enroute" %% "scalameter" % "0.7"
 )
+
+scalaVersion in ThisBuild := projectScalaVersion
 
 testFrameworks += new TestFramework("org.scalameter.ScalaMeterFramework")
 
