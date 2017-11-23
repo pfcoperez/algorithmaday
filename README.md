@@ -30,7 +30,6 @@ Besides, from a selfish standpoint, you will:
 * Get the credit in the daily tweeter feed.
 * Train your problem solving skills.
 * Discuss about the approaches to solve problems and learn along the way.
-* **ONLY THIS MONTH!** Earn a [Hacktoberfest](https://hacktoberfest.digitalocean.com/) t-shirt by contributing to an open source project.
 
 But, more important are some of the reasons to support the Scala & Functional Programming communities:
 
