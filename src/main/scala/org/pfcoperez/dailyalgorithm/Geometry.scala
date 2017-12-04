@@ -32,7 +32,15 @@ object Geometry {
     if (points.size < 3) None
     else {
       val zeroth = Vect(0, -1) //Not part of the convex hull, to be removed
-      val first = points.minBy(_.x) //Leftmost point
+
+      val first = points.min { //Left-upper most point
+        new Ordering[Vect] {
+          def compare(va: Vect, vb: Vect): Int =
+            Seq(va, vb) map {
+              v: Vect => if (va.x != vb.x) v.x else v.y
+            } reduce (_ compare _) toInt
+        }
+      }
 
       def recCH(ch: List[Point], remaining: Set[Point]): List[Point] =
         ch match {
@@ -53,7 +61,14 @@ object Geometry {
   def fasterGiftWrappingConvexHull(points: Set[Point]): Option[List[Point]] =
     if (points.size < 3) None
     else {
-      val first = points.minBy(_.x) //Leftmost point
+      val first = points.min {
+        new Ordering[Vect] {
+          def compare(va: Vect, vb: Vect): Int =
+            Seq(va, vb) map {
+              v: Vect => if (va.x != vb.x) v.x else v.y
+            } reduce (_ compare _) toInt
+        }
+      }
 
       import Primitives.{ pointRelative2boundary, Above }
 
