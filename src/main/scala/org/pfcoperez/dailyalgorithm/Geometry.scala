@@ -84,48 +84,60 @@ object Geometry {
           case _ => ch
         }
 
-      Some(recCH(first :: Nil, points - first))
+      Some(recCH(first :: Nil, points - first).reverse)
     }
 
+  /**
+    * Minkowski addition for convex polygons.
+    * O(n+m), n = number of vertices in polygon `a`, m = number of vertices in polygon 'b'
+    * 
+    * NOTE: The Minkowski addition time complexity is O(m+m), however, this
+    *       implementation makes sure its inputs are convex polygons, therefore, as long
+    *       as these inputs are actually convex hulls, the actual time complexity is O(n^2 + m^2).
+    *       If the initial check is removed, the time complexity will automatically become O(n+m)
+    */
   def convexMinkowskiAddition(a: Set[Point], b: Set[Point]): Option[List[Point]] =
     for {
       convexPolygonA <- fasterGiftWrappingConvexHull(a)
       convexPolygonB <- fasterGiftWrappingConvexHull(b)
     } yield {
 
-      //convexPolygonA foreach (x => println(s">>>>> $x"))
+      import Primitives.{ pointRelative2boundary, Above, fromLeftToRightAndTopToBottom }
 
-      def mergePoint(a: Stream[Point], b: Stream[Point], currentA: Point, currentB: Point, result: List[Point]): List[Point] =
-        if (a.isEmpty || b.isEmpty) result
+      def mergePoint(aIncrements: Stream[Point], bIncrements: Stream[Point], acc: List[Point]): List[Point] =
+        if (Seq(aIncrements, bIncrements).exists(_.isEmpty)) acc
         else {
-          val newVertex = currentA + currentB
-          println(s"Add: $newVertex")
-          val aAngle = angle(currentA, a.head)
-          val bAngle = angle(currentB, b.head)
-          if (aAngle < bAngle) mergePoint(a.tail, b, a.head, currentB, newVertex :: result)
-          else if (aAngle > bAngle) mergePoint(a, b.tail, currentA, b.head, newVertex :: result)
-          else mergePoint(a.tail, b.tail, a.head, b.head, newVertex :: result)
+          val current = acc.head
+
+          val Seq(aCandidate, bCandidate) = Seq(aIncrements, bIncrements) map { increments =>
+            current + increments.head
+          }
+
+          if (pointRelative2boundary(aCandidate, Seq(current, bCandidate)).map(_ == Above).getOrElse(false)) {
+            mergePoint(aIncrements.tail, bIncrements, aCandidate :: acc)
+          } else {
+            mergePoint(aIncrements, bIncrements.tail, bCandidate :: acc)
+          }
+
         }
 
       val polygons = Seq(convexPolygonA, convexPolygonB)
-
       val maxLength = polygons.map(_.size).max
+      val startPoint = (a ++ b).min(fromLeftToRightAndTopToBottom)
 
-      val Seq(aStream, bStream) = polygons map { polygon =>
-        val minInPolygon = polygon.min(Primitives.fromLeftToRightAndTopToBottom)
-
-        val asNormalizedStream: Stream[Point] = polygon.reverse.toStream //map (_ - minInPolygon)
-
-        if (polygon.size < maxLength) {
-          lazy val repeated: Stream[Point] = asNormalizedStream #::: repeated
+      val Seq(aIncrements, bIncrements) = polygons map { polygon =>
+        val asStream = if (polygon.size < maxLength) {
+          lazy val repeated: Stream[Point] = polygon.toStream #::: repeated
           repeated
-        } else asNormalizedStream
+        } else polygon.toStream #::: polygon.toStream.take(2)
 
-        asNormalizedStream #::: asNormalizedStream.take(2)
+        (asStream zip asStream.tail) map {
+          case (from, to) => to - from
+        }
+
       }
 
-      mergePoint(aStream.tail, bStream.tail, aStream.head, bStream.head, Nil).reverse
-
+      mergePoint(aIncrements, bIncrements, startPoint :: Nil).reverse
     }
 
   object Primitives {

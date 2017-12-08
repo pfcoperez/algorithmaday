@@ -18,13 +18,32 @@ class MinkowskiSpec extends WordSpec with Matchers {
       val triangle: Set[Point] = Set(
         (0.0, 0.0), (0.5, 0.5), (1.0, 0.0))
 
+      val octagon: Set[Point] = Set(
+        (0.0, 0.25), (0.175, 0.175), (0.25, 0.0), (0.175, -0.175),
+        (0.0, -0.25), (-0.175, -0.175), (-0.25, 0.0), (-0.175, 0.175))
+
       "provide thr right result for squares plus triangles" in {
 
         val result = convexMinkowskiAddition(square, triangle)
 
-        result foreach println
+        result.get.take(7) should contain theSameElementsInOrderAs List[Vect](
+          (0.0, 0.0),
+          (0.0, 1.0),
+          (0.5, 1.5),
+          (1.5, 1.5),
+          (2.0, 1.0),
+          (2.0, 0.0),
+          (1.0, 0.0))
 
       }
+
+      /*"provide thr right result for trinagles plus octagons" in {
+
+        val result = convexMinkowskiAddition(triangle, octagon)
+
+        result.get foreach println
+
+      }*/
 
     }
 
