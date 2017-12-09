@@ -9,6 +9,7 @@ import scala.util.{ Success, Try }
 object Geometry {
 
   case class Vect(x: Double, y: Double) {
+    def +(that: Vect): Vect = Vect(this.x + that.x, this.y + that.y)
     def -(that: Vect): Vect = Vect(this.x - that.x, this.y - that.y)
     def dot(that: Vect): Double = this.x * that.x + this.y * that.y
     def mod: Double = Math.sqrt(x * x + y * y)
@@ -24,6 +25,14 @@ object Geometry {
     if (ret.isInfinite || ret.isNaN) Double.NegativeInfinity else ret
   }
 
+  /* Angle of formed by pq & the x-axis */
+  def angle(p: Point, q: Point): Double =
+    if (q.y == p.y && q.x >= p.x) 0.0
+    else if (q.y == p.y) math.Pi
+    else if (q.x == p.x && q.y >= p.y) math.Pi / 2.0
+    else if (q.x == p.x) 3.0 * math.Pi / 2.0
+    else math.atan((q.y - p.y) / (q.x - p.y))
+
   /*
     Gift wrapping Convex Hull algorithm.
     O(nm) where: n = Number of points in input & m = number of points in Convex Hull Polygon
@@ -33,14 +42,7 @@ object Geometry {
     else {
       val zeroth = Vect(0, -1) //Not part of the convex hull, to be removed
 
-      val first = points.min { //Left-upper most point
-        new Ordering[Vect] {
-          def compare(va: Vect, vb: Vect): Int =
-            Seq(va, vb) map {
-              v: Vect => if (va.x != vb.x) v.x else v.y
-            } reduce (_ compare _) toInt
-        }
-      }
+      val first = points.min(Primitives.fromLeftToRightAndTopToBottom) //Left-upper most point
 
       def recCH(ch: List[Point], remaining: Set[Point]): List[Point] =
         ch match {
@@ -61,16 +63,10 @@ object Geometry {
   def fasterGiftWrappingConvexHull(points: Set[Point]): Option[List[Point]] =
     if (points.size < 3) None
     else {
-      val first = points.min {
-        new Ordering[Vect] {
-          def compare(va: Vect, vb: Vect): Int =
-            Seq(va, vb) map {
-              v: Vect => if (va.x != vb.x) v.x else v.y
-            } reduce (_ compare _) toInt
-        }
-      }
 
-      import Primitives.{ pointRelative2boundary, Above }
+      import Primitives.{ pointRelative2boundary, Above, fromLeftToRightAndTopToBottom }
+
+      val first = points.min(fromLeftToRightAndTopToBottom)
 
       def recCH(ch: List[Point], remaining: Set[Point]): List[Point] =
         ch match {
@@ -88,7 +84,60 @@ object Geometry {
           case _ => ch
         }
 
-      Some(recCH(first :: Nil, points - first))
+      Some(recCH(first :: Nil, points - first).reverse)
+    }
+
+  /**
+    * Minkowski addition for convex polygons.
+    * O(n+m), n = number of vertices in polygon `a`, m = number of vertices in polygon 'b'
+    * 
+    * NOTE: The Minkowski addition time complexity is O(m+m), however, this
+    *       implementation makes sure its inputs are convex polygons, therefore, as long
+    *       as these inputs are actually convex hulls, the actual time complexity is O(n^2 + m^2).
+    *       If the initial check is removed, the time complexity will automatically become O(n+m)
+    */
+  def convexMinkowskiAddition(a: Set[Point], b: Set[Point]): Option[List[Point]] =
+    for {
+      convexPolygonA <- fasterGiftWrappingConvexHull(a)
+      convexPolygonB <- fasterGiftWrappingConvexHull(b)
+    } yield {
+
+      import Primitives.{ pointRelative2boundary, Above, fromLeftToRightAndTopToBottom }
+
+      def mergePoint(aIncrements: Stream[Point], bIncrements: Stream[Point], acc: List[Point]): List[Point] =
+        if (Seq(aIncrements, bIncrements).exists(_.isEmpty)) acc
+        else {
+          val current = acc.head
+
+          val Seq(aCandidate, bCandidate) = Seq(aIncrements, bIncrements) map { increments =>
+            current + increments.head
+          }
+
+          if (pointRelative2boundary(aCandidate, Seq(current, bCandidate)).map(_ == Above).getOrElse(false)) {
+            mergePoint(aIncrements.tail, bIncrements, aCandidate :: acc)
+          } else {
+            mergePoint(aIncrements, bIncrements.tail, bCandidate :: acc)
+          }
+
+        }
+
+      val polygons = Seq(convexPolygonA, convexPolygonB)
+      val maxLength = polygons.map(_.size).max
+      val startPoint = (a ++ b).min(fromLeftToRightAndTopToBottom)
+
+      val Seq(aIncrements, bIncrements) = polygons map { polygon =>
+        val asStream = if (polygon.size < maxLength) {
+          lazy val repeated: Stream[Point] = polygon.toStream #::: repeated
+          repeated
+        } else polygon.toStream #::: polygon.toStream.take(2)
+
+        (asStream zip asStream.tail) map {
+          case (from, to) => to - from
+        }
+
+      }
+
+      mergePoint(aIncrements, bIncrements, startPoint :: Nil).reverse
     }
 
   object Primitives {
@@ -144,6 +193,13 @@ object Geometry {
         case v if v < 0 => Below
         case 0 => On
       }
+
+    val fromLeftToRightAndTopToBottom = new Ordering[Vect] {
+      def compare(va: Vect, vb: Vect): Int =
+        Seq(va, vb) map {
+          v: Vect => if (va.x != vb.x) v.x else v.y
+        } reduce (_ compare _) toInt
+    }
 
   }
 
