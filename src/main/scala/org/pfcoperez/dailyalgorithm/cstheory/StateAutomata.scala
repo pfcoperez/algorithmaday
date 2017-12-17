@@ -47,7 +47,7 @@ object StateAutomata {
      * O(n + m), n = number of states, m = number of transitions
      */
     def mergeStates(a: State, b: State): Automaton[State, Entry, Output] =
-      if(a == b) this
+      if (a == b) this
       else {
         val redirectedTransitions = transitionMatrix mapValues {
           _.mapValues {
@@ -85,9 +85,9 @@ object StateAutomata {
   object Automaton {
 
     /**
-      * Produce a minimized version, through Myhill-Nerode theorem, of the input automaton.
-      * O(n^2 m^2), n = number of states, m = number of transitions.
-      */
+     * Produce a minimized version, through Myhill-Nerode theorem, of the input automaton.
+     * O(n^2 m^2), n = number of states, m = number of transitions.
+     */
     def minimize[State, Entry, Output](automaton: Automaton[State, Entry, Output]): Automaton[State, Entry, Output] = {
       val indexedStates = automaton.states.toVector
       def isFinal(st: State): Boolean = automaton.finalStates contains st

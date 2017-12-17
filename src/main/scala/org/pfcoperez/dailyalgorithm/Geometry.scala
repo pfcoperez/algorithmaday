@@ -88,14 +88,14 @@ object Geometry {
     }
 
   /**
-    * Minkowski addition for convex polygons.
-    * O(n+m), n = number of vertices in polygon `a`, m = number of vertices in polygon 'b'
-    * 
-    * NOTE: The Minkowski addition time complexity is O(m+m), however, this
-    *       implementation makes sure its inputs are convex polygons, therefore, as long
-    *       as these inputs are actually convex hulls, the actual time complexity is O(n^2 + m^2).
-    *       If the initial check is removed, the time complexity will automatically become O(n+m)
-    */
+   * Minkowski addition for convex polygons.
+   * O(n+m), n = number of vertices in polygon `a`, m = number of vertices in polygon 'b'
+   *
+   * NOTE: The Minkowski addition time complexity is O(m+m), however, this
+   *       implementation makes sure its inputs are convex polygons, therefore, as long
+   *       as these inputs are actually convex hulls, the actual time complexity is O(n^2 + m^2).
+   *       If the initial check is removed, the time complexity will automatically become O(n+m)
+   */
   def convexMinkowskiAddition(a: Set[Point], b: Set[Point]): Option[List[Point]] =
     for {
       convexPolygonA <- fasterGiftWrappingConvexHull(a)
