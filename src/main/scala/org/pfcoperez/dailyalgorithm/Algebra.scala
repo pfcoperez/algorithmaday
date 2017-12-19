@@ -155,9 +155,57 @@ object Algebra {
 
       }
 
+      trait ConvolutionMethod {
+        final def convolve[T: Numeric: ClassTag](M: Matrix[T], Kernel: Matrix[T], stride: Int = 1): Matrix[T] = {
+          /* Dimensions could be checked at compile time with literal types:
+           http://docs.scala-lang.org/sips/pending/42.type.html */
+          val (kN, kM) = size(Kernel)
+          require(kN == kM && kN % 2 != 0, "Kenel has to have a center and by symmetric")
+          convolutionImplementation(M, Kernel, stride)
+        }
+
+        protected def convolutionImplementation[T: Numeric: ClassTag](M: Matrix[T], Kernel: Matrix[T], stride: Int): Matrix[T]
+      }
+
+      object ConvolutionMethods {
+
+        object DirectComputation extends ConvolutionMethod {
+
+          /**
+            * Direct 2D convolution computation
+            * 
+            * O(n*m*f^2),
+            * n = no rows, m = no columns, f = kernel number of rows = kernel number of columns.
+            * 
+            **/
+          def convolutionImplementation[T](M: Matrix[T], Kernel: Matrix[T], stride: Int)(
+            implicit num: Numeric[T], clsTag: ClassTag[T]
+          ): Matrix[T] = {
+            import num._
+            val (f, _) = size(Kernel)
+            val (m, n) = size(M)
+            val offset = f / 2
+            val Seq(resultN: Int, resultM: Int) = Seq(n, m) map (d => (d - f).toInt / stride + 1)
+            positionalValues(resultN, resultM) { (i, j) =>
+              val offsets = for {
+                ki <- (-offset to offset).view
+                kj <- (-offset to offset).view
+              } yield (ki, kj)
+              val Seq(ci, cj) = Seq(i, j) map { p => offset + p * stride }
+              (zero /: offsets) {
+                case (acc, (di, dj)) =>
+                  acc + M(ci + di)(cj + dj) * Kernel(offset + di)(offset + dj)
+              }
+            }
+          }
+        }
+
+      }
+
       object Implicits {
         implicit val DefaultMultiplicationMethod = MultiplicationMethods.NaiveMultiplicationMethod
         implicit val DefaultDeterminantMethod = DeterminantMethods.LUPDecompositionMethod
+        implicit val DefaultConvolutionMethod = ConvolutionMethods.DirectComputation
       }
 
       /**
