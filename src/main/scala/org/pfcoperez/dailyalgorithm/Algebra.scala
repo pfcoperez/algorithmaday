@@ -263,7 +263,7 @@ object Algebra {
 
       import org.pfcoperez.dailyalgorithm.Algebra.Matrix.NumericMatrix.{ MultiplicationMethod, DeterminantMethod }
       val numericTypeclass = implicitly[Numeric[T]]
-      import numericTypeclass.mkNumericOps
+      import numericTypeclass.{mkNumericOps, zero}
 
       def *(that: Matrix[T])(implicit multiplicationMethod: MultiplicationMethod): Matrix[T] =
         multiplicationMethod.multiply(m, that)
@@ -280,6 +280,27 @@ object Algebra {
 
       def det(implicit determinantMethod: DeterminantMethod): Double =
         determinantMethod.determinant(m)
+
+      def padded(padding: Int): Matrix[T] = new Matrix[T] {
+
+        private val (coreN, coreM) = Matrix.size(m)
+
+        private val zeroRow: Array[T] = new Array[T] {
+          def apply(j: Int): T = zero
+          def length: Int = coreM + 2*padding
+        }
+
+        def apply(i: Int): Array[T] =
+          if((0 <= i && i < padding) || (coreN <= i && i < coreN+padding)) zeroRow
+          else new Array[T] {
+            def apply(j: Int): T =
+              if((0 <= j && j < padding) || (coreM <= j && j < coreM+padding)) zero
+              else m(i-padding)(j-padding)
+            def length: Int = coreN + 2*padding
+          }
+
+        def length: Int = m.headOption.map(_.length).getOrElse(0)
+      }
 
     }
 
