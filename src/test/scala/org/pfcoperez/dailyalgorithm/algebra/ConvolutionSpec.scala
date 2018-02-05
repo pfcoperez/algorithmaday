@@ -1,25 +1,23 @@
 package org.pfcoperez.dailyalgorithm.algebra
 
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.{ Matchers, WordSpec }
 
 import org.pfcoperez.dailyalgorithm.Algebra.Matrix._
 import org.pfcoperez.dailyalgorithm.Algebra.Matrix
 
 import NumericMatrix.Implicits._
 
-
 class ConvolutionSpec extends WordSpec with Matchers {
 
   def identityKernel(f: Int): Matrix[Int] = {
     require(f % 2 == 1)
     positionalValues(f, f) { (i, j) =>
-      if(i == f/2 && i == j) 1 else 0
+      if (i == f / 2 && i == j) 1 else 0
     }
   }
 
   import MatrixMultiplicationSpec.randomIntMatrix
   import DefaultConvolutionMethod.convolve
-
 
   "Matrix convolution" when {
 
@@ -33,8 +31,8 @@ class ConvolutionSpec extends WordSpec with Matchers {
         val m = randomIntMatrix(nM, nM)
         val k = identityKernel(f)
 
-        val expected = positionalValues(nM-2, mM-2) { (i, j) =>
-          m(i+1)(j+1)
+        val expected = positionalValues(nM - 2, mM - 2) { (i, j) =>
+          m(i + 1)(j + 1)
         }
 
         println(PrintableMatrix(k))
@@ -44,7 +42,7 @@ class ConvolutionSpec extends WordSpec with Matchers {
         println(PrintableMatrix(expected))
         println
 
-        convolve(m, k) should equal (expected)
+        convolve(m, k) should equal(expected)
 
       }
 
@@ -57,7 +55,7 @@ class ConvolutionSpec extends WordSpec with Matchers {
         val k = identityKernel(f)
 
         val expected = positionalValues(2, 2) { (i, j) =>
-          m(1+i*2)(1+j*2)
+          m(1 + i * 2)(1 + j * 2)
         }
 
         println(PrintableMatrix(k))
@@ -67,7 +65,7 @@ class ConvolutionSpec extends WordSpec with Matchers {
         println(PrintableMatrix(expected))
         println
 
-        convolve(m, k, 2) should equal (expected)
+        convolve(m, k, 2) should equal(expected)
 
       }
 
@@ -98,7 +96,5 @@ class ConvolutionSpec extends WordSpec with Matchers {
     }*/
 
   }
-
-
 
 }

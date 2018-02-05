@@ -172,15 +172,15 @@ object Algebra {
         object DirectComputation extends ConvolutionMethod {
 
           /**
-            * Direct 2D convolution computation
-            * 
-            * O(n*m*f^2),
-            * n = no rows, m = no columns, f = kernel number of rows = kernel number of columns.
-            * 
-            **/
+           * Direct 2D convolution computation
+           *
+           * O(n*m*f^2),
+           * n = no rows, m = no columns, f = kernel number of rows = kernel number of columns.
+           *
+           */
           def convolutionImplementation[T](M: Matrix[T], Kernel: Matrix[T], stride: Int)(
-            implicit num: Numeric[T], clsTag: ClassTag[T]
-          ): Matrix[T] = {
+            implicit
+            num: Numeric[T], clsTag: ClassTag[T]): Matrix[T] = {
             import num._
             val (f, _) = size(Kernel)
             val (m, n) = size(M)
@@ -263,7 +263,7 @@ object Algebra {
 
       import org.pfcoperez.dailyalgorithm.Algebra.Matrix.NumericMatrix.{ MultiplicationMethod, DeterminantMethod }
       val numericTypeclass = implicitly[Numeric[T]]
-      import numericTypeclass.{mkNumericOps, zero}
+      import numericTypeclass.{ mkNumericOps, zero }
 
       def *(that: Matrix[T])(implicit multiplicationMethod: MultiplicationMethod): Matrix[T] =
         multiplicationMethod.multiply(m, that)
@@ -287,16 +287,16 @@ object Algebra {
 
         private val zeroRow: Array[T] = new Array[T] {
           def apply(j: Int): T = zero
-          def length: Int = coreM + 2*padding
+          def length: Int = coreM + 2 * padding
         }
 
         def apply(i: Int): Array[T] =
-          if((0 <= i && i < padding) || (coreN <= i && i < coreN+padding)) zeroRow
+          if ((0 <= i && i < padding) || (coreN <= i && i < coreN + padding)) zeroRow
           else new Array[T] {
             def apply(j: Int): T =
-              if((0 <= j && j < padding) || (coreM <= j && j < coreM+padding)) zero
-              else m(i-padding)(j-padding)
-            def length: Int = coreN + 2*padding
+              if ((0 <= j && j < padding) || (coreM <= j && j < coreM + padding)) zero
+              else m(i - padding)(j - padding)
+            def length: Int = coreN + 2 * padding
           }
 
         def length: Int = m.headOption.map(_.length).getOrElse(0)

@@ -9,8 +9,7 @@ class StateAutomataSpec extends WordSpec with Matchers with Inspectors with Insi
 
   "StateAutomata" when {
 
-    def justOutput[State, Output](res: Stream[Either[Error, AutomatonStep[State, Output]]]
-                                 ): Stream[Either[Error, Option[Output]]] = res.map(_.right.map(_.output))
+    def justOutput[State, Output](res: Stream[Either[Error, AutomatonStep[State, Output]]]): Stream[Either[Error, Option[Output]]] = res.map(_.right.map(_.output))
 
     "modeling finite state machines" should {
 
