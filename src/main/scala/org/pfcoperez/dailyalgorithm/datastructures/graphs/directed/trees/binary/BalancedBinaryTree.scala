@@ -1,13 +1,13 @@
 package org.pfcoperez.dailyalgorithm.datastructures.graphs.directed.trees.binary
 
-object BalancedBinaryTree extends BinaryTreeOps {
-  def min[T: Ordering](btree: BinaryTree[T]): Option[T] = RawBinaryTree.min(btree)
-  def max[T: Ordering](btree: BinaryTree[T]): Option[T] = RawBinaryTree.max(btree)
+trait BalancedBinaryTreeOps extends RawBinaryTreeOps {
+  override def min[T: Ordering](btree: BinaryTree[T]): Option[T] = RawBinaryTree.min(btree)
+  override def max[T: Ordering](btree: BinaryTree[T]): Option[T] = RawBinaryTree.max(btree)
 
-  def findFirst[T: Ordering](btree: BinaryTree[T])(v: T): BinaryTree[T] =
+  override def findFirst[T: Ordering](btree: BinaryTree[T])(v: T): BinaryTree[T] =
     RawBinaryTree.findFirst(btree)(v)
 
-  def height[T](binaryTree: BinaryTree[T], limit: Option[Int] = None): Int =
+  override def height[T](binaryTree: BinaryTree[T], limit: Option[Int] = None): Int =
     RawBinaryTree.height(binaryTree, limit)
 
   private def leftRotation[T]: PartialFunction[Node[T], Node[T]] = {
@@ -22,7 +22,7 @@ object BalancedBinaryTree extends BinaryTreeOps {
     case other => other
   }
 
-  def insert[T](btree: BinaryTree[T])(v: T)(
+  override def insert[T](btree: BinaryTree[T])(v: T)(
     implicit
     order: Ordering[T]): BinaryTree[T] = {
     import order.mkOrderingOps
@@ -64,6 +64,6 @@ object BalancedBinaryTree extends BinaryTreeOps {
 
   }
 
-  override def delete[T: Ordering](btree: BinaryTree[T])(v: T): BinaryTree[T] = ???
-
 }
+
+object BalancedBinaryTree extends BalancedBinaryTreeOps
