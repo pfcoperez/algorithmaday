@@ -298,6 +298,15 @@ package object directed {
 
     }
 
+    class LoopElement[T](x: T)(fNext: Element[T] => LinkedList[T]) extends Element(x, Empty) {
+      override val next: LinkedList[T] = fNext(this)
+    }
+
+    object LoopElement {
+      def apply[T](x: T)(fNext: Element[T] => LinkedList[T]): LoopElement[T] =
+        new LoopElement(x)(fNext)
+    }
+
     case object Empty extends LinkedList[Nothing] {
       override def length: Int = 0
       override def next: LinkedList[Nothing] =
