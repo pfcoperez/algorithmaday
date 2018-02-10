@@ -313,6 +313,18 @@ package object directed {
         throw new RuntimeException("Serial crash: Asking EMPTY for next")
     }
 
+    object TyingTheNot {
+
+      class Node[T](val value: Option[T], next: => Option[Node[T]]) {
+        lazy val maybeNext: Option[Node[T]] = next
+      }
+
+      object Node {
+        def apply[T](v: T, lazyNext: => Node[T]): Node[T] = new Node(Some(v), Some(lazyNext))
+        def apply[T](v: T): Node[T] = new Node[T](Some(v), None)
+      }
+    }
+
   }
 
 }
