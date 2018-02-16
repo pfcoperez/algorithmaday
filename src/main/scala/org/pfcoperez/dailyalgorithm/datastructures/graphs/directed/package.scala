@@ -323,6 +323,33 @@ package object directed {
         def apply[T](v: T, lazyNext: => Node[T]): Node[T] = new Node(Some(v), Some(lazyNext))
         def apply[T](v: T): Node[T] = new Node[T](Some(v), None)
       }
+
+      /**
+        * Detects loops in a Linked list providing their first node if found
+        * O(n), n = number of elements in the list
+        *
+        * @param list Linked list
+        * @return `Some(First node in the loop)` if found, `None` otherwise
+        */
+      def detectLoop[T](list: Node[T]): Option[Node[T]] = {
+
+        def race(slow: Node[T], fast: Node[T], firstIteration: Boolean): Option[Node[T]] =
+          if(!firstIteration && slow == fast) Some(slow)
+          else {
+            val maybeNextStep = for {
+              nextSlow <- slow.maybeNext
+              fastNext <- fast.maybeNext
+              nextFast <- fastNext.maybeNext
+            } yield (nextSlow, nextFast)
+            maybeNextStep match { //Just a map, pattern match to keep tail recursion
+              case Some((nextSlow, nextFast)) => race(nextSlow, nextFast, false)
+              case _ => None
+            }
+          }
+
+        race(list, list, true)
+      }
+
     }
 
   }
