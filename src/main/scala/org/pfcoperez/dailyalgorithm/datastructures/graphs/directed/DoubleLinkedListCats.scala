@@ -13,7 +13,7 @@ object DoubleLinkedListCats {
   private def updatePrev[T](dl: DoubleLinkedListCats[T], prev: Eval[DoubleLinkedListCats[T]]): DoubleLinkedListCats[T] = dl match {
     case node: Node[T] =>
       lazy val updated: Eval[DoubleLinkedListCats[T]] = later(node.copy(prev = prev, next = newTail))
-      lazy val newTail = later(updatePrev(node.next.value, updated))
+      lazy val newTail = node.next.map(updatePrev(_, updated))
       updated.value
     case _ => Empty
   }
