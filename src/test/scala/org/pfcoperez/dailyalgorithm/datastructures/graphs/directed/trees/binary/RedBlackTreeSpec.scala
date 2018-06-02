@@ -59,19 +59,35 @@ class RedBlackTreeSpec extends FlatSpec with Matchers with Inside {
     }
   }
 
+  def inOrderTraverse[T](binaryTree: BinaryTree[T]): List[T] = binaryTree match {
+    case RedBlackNode(left, v, _, right) =>
+      inOrderTraverse(left.value) ::: v +: inOrderTraverse(right.value)
+    case _ => Nil
+  }
+
+  def preOrderTraverse[T](binaryTree: BinaryTree[T]): List[T] = binaryTree match {
+    case RedBlackNode(left, v, _, right) =>
+      v +: preOrderTraverse(left.value) ::: preOrderTraverse(right.value)
+    case _ => Nil
+  }
+
   it should "preserve parenthood relations after rotations" in {
 
-
     val tree = ((BlackRoot(Now(BlackEmpty), -1, Now(BlackEmpty)): BinaryTree[Int]) /: List(2, 1, 0, 4, 3, 5, 6))(insert(_)(_))
-
     val target = tree.asInstanceOf[BlackRoot[Int]].right.value.asInstanceOf[RedBlackNode[Int]]
 
-    val res = leftRotation(target)(Later(RedBlackNode(Later(???), -10, false, Later(???))(Later(???)))).value.asInstanceOf[RedBlackNode[Int]]
+    val leftRotated = leftRotation(target)(Later(RedBlackNode(Later(???), -10, false, Later(???))(Later(???)))).value.asInstanceOf[RedBlackNode[Int]]
+    val rightRotatedAfterLeftRotated = rightRotation(leftRotated)(Later(RedBlackNode(Later(???), -10, false, Later(???))(Later(???)))).value
 
-    val counterRes = rightRotation(res)(Later(RedBlackNode(Later(???), -10, false, Later(???))(Later(???)))).value
+    withClue("preserve binary trees condition") {
+      inOrderTraverse(target) shouldBe inOrderTraverse(leftRotated)
+      inOrderTraverse(leftRotated) shouldBe inOrderTraverse(rightRotatedAfterLeftRotated)
+    }
 
-    // (res -> counterRes) TODO: Finish test
-
+    withClue("right rotation after left rotation should act as identity") {
+      preOrderTraverse(target) shouldBe preOrderTraverse(rightRotatedAfterLeftRotated)
+      preOrderTraverse(target) should not be preOrderTraverse(leftRotated)
+    }
   }
 
 }
