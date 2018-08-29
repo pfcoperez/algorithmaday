@@ -18,6 +18,36 @@ trait RedBlackTreeOps extends BalancedBinaryTreeOps {
 
   object BlackEmpty extends BinaryTree[Nothing]
 
+  /*
+  private def insertFixUp[T](rbtree: RedBlackTree[T], current: RedBlackTree[T])(implicit vOrd: Ordering[T]): RedBlackTree[T] = {
+    import vOrd.mkOrderingOps
+
+    def setColor(rbtree: RedBlackTree[T], node: RedBlackNode[T], toRed: Boolean, prev: => RedBlackTree[T]): RedBlackTree[T] = rbtree match {
+      case BlackRoot(left: RedBlackTree[T], value, right: RedBlackTree[T]) =>
+        lazy val updatedNode: BlackRoot[T] =  if(node.value <= value) BlackRoot(setColor(left, node, toRed, updatedNode), value, right)
+        else BlackRoot(left, value, setColor(right, node, toRed, updatedNode))
+        updatedNode
+      case currentNode @ RedBlackNode(left, value, isRed, right) =>
+        if(currentNode eq node) currentNode.copy(isRed = toRed)(parent = )
+        ???
+    }
+
+    current match {
+      case node: RedBlackNode[T] if node.parent.isRed =>
+        node.parent match {
+          case parent: RedBlackNode[T] if(parent.parent.left eq parent) =>
+            parent.parent.right match {
+              case RedBlackNode(_, _, true, _) =>
+                ???
+            }
+            ???
+          case _ =>
+            ???
+        }
+      case _ => rbtree
+    }
+  }*/
+
   def leftRotation[T](node: RedBlackNode[T])(parent: Eval[RedBlackTree[T]]): Eval[BinaryTree[T]] = {
     node.right.flatMap {
       case prevRight: RedBlackNode[T] =>
