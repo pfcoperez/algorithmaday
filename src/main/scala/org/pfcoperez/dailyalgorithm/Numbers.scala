@@ -1,3 +1,5 @@
+package org.pfcoperez.dailyalgorithm
+
 import scala.collection.immutable.Stream
 
 object Numbers {
@@ -31,6 +33,37 @@ object Numbers {
       }
     if (n < 1 || k < 1 || n < k) None
     else Some(memoizedBinCoef(n, k)(Map.empty)._1)
+  }
+
+  import scala.language.experimental.macros
+  import scala.reflect.macros.blackbox
+
+  /**
+   * Compile time prime numbers generation. Values get generated at compilation time and a vector with the generated
+   * constant is built at run-time.
+   *
+   * Run-time: O(n), as the vector instance is built at run-time.
+   * Compile-time: O(n^2)
+   * @param n Number of prime to generate.
+   * @return a [[Vector[BigInt]] with `n` primes
+   */
+  def compiledPrimes(n: Int): Vector[BigInt] = macro compiledPrimesImp
+
+  def compiledPrimesImp(ctx: blackbox.Context)(n: ctx.Expr[Int]): ctx.Expr[Vector[BigInt]] = {
+    import ctx.universe._
+
+    val nn: Int = n match {
+      case ctx.Expr(Literal(Constant(constantN: Int))) => constantN
+      case _ => throw new IllegalArgumentException("Compiled primes generation size must be a literal value")
+    }
+
+    val generatedValues = primesStream.take(nn).toList
+
+    implicit val bigIntLiftable = Liftable[BigInt] { bi =>
+      ctx.Expr(q"scala.math.BigInt.apply(${bi.toString})").tree
+    }
+
+    ctx.Expr(q"scala.collection.immutable.Vector(..$generatedValues)")
   }
 
 }
